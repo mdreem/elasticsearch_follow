@@ -22,9 +22,10 @@ class ElasticsearchFollow:
                 }
             }
         })
+
         res = self.es.search(index=index,
                              scroll='2m',
-                             doc_type="doc",
+                             doc_type='doc',
                              body=query_since)
         sid = res['_scroll_id']
         hits = res['hits']['hits']

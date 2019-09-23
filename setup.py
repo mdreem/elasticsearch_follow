@@ -17,6 +17,9 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     setup_requires=['pytest-runner'],
-    tests_require=['pytest', 'pytest-cov', 'pytest-html'],
+    tests_require=['pytest',
+                   'pytest-cov',
+                   'pytest-html',
+                   'elasticsearch>=6.0.0,<7.0.0'],
     test_suite="tests",
 )
