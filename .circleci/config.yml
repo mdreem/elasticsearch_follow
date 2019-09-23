@@ -43,6 +43,11 @@ jobs:
           key: v1-dependencies-{{ checksum "requirements.txt" }}
 
       - run:
+          name: wait for elasticsearch to start
+          command: |
+            tests/wait_for_es.sh
+
+      - run:
           name: run tests
           command: |
             . venv/bin/activate
