@@ -2,14 +2,20 @@ import elasticsearch_follow
 
 
 class ElasticsearchTest:
+    def __init__(self):
+        self.message = ''
+
+    def set_message(self, message):
+        self.message = message
+
     def search(self, index, scroll, doc_type, body):
         print("Called Elasticsearch.search(index={}, scroll={}, doc_type={}, body={})".format(index, scroll, doc_type, body))
         return {'_scroll_id': 'some_scroll_id',
                 'hits': {
                     'hits': [{
-                        '_id': 'id_1',
+                        '_id': 'id_' + self.message,
                         '_source': {
-                            'msg': 'line1'
+                            'msg': self.message
                         }
                     }]
                 }
@@ -24,11 +30,17 @@ class ElasticsearchTest:
                 }
 
 
-class TestMain:
+class TestFollower:
     def test_main(self):
         es = ElasticsearchTest()
         es_follow = elasticsearch_follow.ElasticsearchFollow(es)
-        new_lines = es_follow.get_new_lines('my_index', None)
-        assert len(new_lines) == 1
-        assert 'msg' in new_lines[0]
-        assert new_lines[0]['msg'] == 'line1'
+        follower = elasticsearch_follow.Follower(es_follow, 'some_index', 60)
+
+        es.set_message('line1')
+        generator = follower.generator()
+        assert next(generator)['msg'] == 'line1'
+        assert next(generator) is None
+
+        es.set_message('line2')
+        assert next(generator)['msg'] == 'line2'
+        assert next(generator) is None

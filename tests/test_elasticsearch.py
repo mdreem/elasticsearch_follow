@@ -1,7 +1,6 @@
 import elasticsearch_follow
 from elasticsearch import Elasticsearch
 from datetime import datetime
-import pytest
 
 
 class TestElasticsearch:
@@ -34,7 +33,7 @@ class TestElasticsearch:
         es = Elasticsearch(["http://localhost:9200"])
         es.indices.delete(index=name, ignore=[400, 404])
 
-    def test_querty_line(self):
+    def test_query_line(self):
         self.delete_index('test_index')
         self.insert_line()
 
