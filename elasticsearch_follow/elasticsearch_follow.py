@@ -1,10 +1,3 @@
-import datetime
-import dateutil.parser
-import json
-import time
-from collections import deque
-
-
 class ElasticsearchFollow:
     BASE_QUERY = {'query': {'bool': {'must': []}}}
 
