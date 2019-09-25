@@ -9,7 +9,8 @@ class ElasticsearchTest:
                     'hits': [{
                         '_id': 'id_1',
                         '_source': {
-                            'msg': 'line1'
+                            'msg': 'line1',
+                            '@timestamp': '2019-01-01T10:01:00'
                         }
                     }]
                 }

@@ -15,7 +15,8 @@ class ElasticsearchTest:
                     'hits': [{
                         '_id': 'id_' + self.message,
                         '_source': {
-                            'msg': self.message
+                            'msg': self.message,
+                            '@timestamp': '2019-01-01T10:01:00'
                         }
                     }]
                 }

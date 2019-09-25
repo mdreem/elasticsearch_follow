@@ -1,16 +1,35 @@
+from sortedcontainers import SortedList
+from functools import total_ordering
+
+
+@total_ordering
+class Entry:
+    def __init__(self, timestamp, id):
+        self.timestamp = timestamp
+        self.id = id
+
+    def __eq__(self, other):
+        return (self.timestamp, self.id) == (other.timestamp, other.id)
+
+    def __lt__(self, other):
+        return self.timestamp < other.timestamp
+
+
 class ElasticsearchFollow:
     BASE_QUERY = {'query': {'bool': {'must': []}}}
 
-    def __init__(self, elasticsearch):
+    def __init__(self, elasticsearch, timestamp_field='@timestamp'):
         self.es = elasticsearch
+        self.timestamp_field = timestamp_field
 
         self.added_entries = set()
+        self.entries_by_timestamp = SortedList()
 
     def get_entries_since(self, index, timestamp):
         query_since = dict(self.BASE_QUERY)
         query_since['query']['bool']['must'].append({
             'range': {
-                "@timestamp": {
+                self.timestamp_field: {
                     "gt": timestamp
                 }
             }
@@ -39,7 +58,10 @@ class ElasticsearchFollow:
         for entry in entries:
             id = entry['_id']
             if id not in self.added_entries:
-                lines.append(entry['_source'])
+                new_line = entry['_source']
+                lines.append(new_line)
+                self.entries_by_timestamp.add(Entry(id, new_line[self.timestamp_field]))
+
                 self.added_entries.add(id)
 
         return lines
