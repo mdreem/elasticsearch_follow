@@ -1,6 +1,7 @@
-from functools import total_ordering
-from dateutil.parser import parse
 import heapq
+from functools import total_ordering
+
+from dateutil.parser import parse
 
 
 @total_ordering

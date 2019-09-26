@@ -1,6 +1,8 @@
-import elasticsearch_follow
-from elasticsearch import Elasticsearch
 from datetime import datetime
+
+from elasticsearch import Elasticsearch
+
+import elasticsearch_follow
 
 
 class TestElasticsearch:
