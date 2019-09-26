@@ -5,21 +5,15 @@ import elasticsearch_follow
 from .query_generator import generate_basic_query_response, generate_scroll
 
 
-class ElasticsearchTest:
-    def search(self, index, scroll, doc_type, body):
-        print("Called Elasticsearch.search(index={}, scroll={}, doc_type={}, body={})".format(index, scroll, doc_type, body))
-        return generate_basic_query_response('id_1', 'line1', datetime(year=2019, month=1, day=1, hour=10, minute=1))
-
-    def scroll(self, scroll_id, scroll):
-        print("Called Elasticsearch.scroll(scroll_id={}, scroll={})".format(scroll_id, scroll))
-        return generate_scroll([])
-
-
 class TestMain:
     def test_main(self):
-        es = ElasticsearchTest()
+        es = Mock()
         es_follow = elasticsearch_follow.ElasticsearchFollow(es)
+        es.search.return_value = generate_basic_query_response('id_1', 'line1', datetime(year=2019, month=1, day=1, hour=10, minute=1))
+        es.scroll.return_value = generate_scroll([])
+
         new_lines = es_follow.get_new_lines('my_index', None)
+
         assert len(new_lines) == 1
         assert 'msg' in new_lines[0]
         assert new_lines[0]['msg'] == 'line1'
