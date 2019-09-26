@@ -1,5 +1,6 @@
-from sortedcontainers import SortedList
 from functools import total_ordering
+from dateutil.parser import parse
+import heapq
 
 
 @total_ordering
@@ -23,7 +24,7 @@ class ElasticsearchFollow:
         self.timestamp_field = timestamp_field
 
         self.added_entries = set()
-        self.entries_by_timestamp = SortedList()
+        self.entries_by_timestamp = []
 
     def get_entries_since(self, index, timestamp):
         query_since = dict(self.BASE_QUERY)
@@ -60,8 +61,18 @@ class ElasticsearchFollow:
             if entry_id not in self.added_entries:
                 new_line = entry['_source']
                 lines.append(new_line)
-                self.entries_by_timestamp.add(Entry(entry_id, new_line[self.timestamp_field]))
+                entry_timestamp = parse(new_line[self.timestamp_field])
+                heapq.heappush(self.entries_by_timestamp, Entry(timestamp=entry_timestamp, entry_id=entry_id))
 
                 self.added_entries.add(entry_id)
 
         return lines
+
+    def prune_before(self, timestamp):
+        while len(self.entries_by_timestamp) > 0:
+            oldest_entry = heapq.heappop(self.entries_by_timestamp)
+            if oldest_entry.timestamp <= timestamp:
+                self.added_entries.remove(oldest_entry.entry_id)
+            else:
+                heapq.heappush(self.entries_by_timestamp, oldest_entry)
+                return
