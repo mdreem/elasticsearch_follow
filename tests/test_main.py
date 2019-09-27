@@ -2,15 +2,15 @@ from datetime import datetime
 from unittest.mock import Mock
 
 import elasticsearch_follow
-from .query_generator import generate_basic_query_response, generate_scroll
+from .query_generator import generate_basic_query_response, generate_query_response, generate_hit_entry
 
 
 class TestMain:
-    def test_main(self):
+    def test_fetch_one_line(self):
         es = Mock()
         es_follow = elasticsearch_follow.ElasticsearchFollow(es)
         es.search.return_value = generate_basic_query_response('id_1', 'line1', datetime(year=2019, month=1, day=1, hour=10, minute=1))
-        es.scroll.return_value = generate_scroll([])
+        es.scroll.return_value = generate_query_response([])
 
         new_lines = es_follow.get_new_lines('my_index', None)
 
@@ -18,13 +18,32 @@ class TestMain:
         assert 'msg' in new_lines[0]
         assert new_lines[0]['msg'] == 'line1'
 
+    def test_fetch_multiple_lines_with_scroll(self):
+        es = Mock()
+        es_follow = elasticsearch_follow.ElasticsearchFollow(es)
+
+        timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=1)
+        es.search.return_value = generate_query_response([generate_hit_entry('id_1', 'line1', timestamp),
+                                                          generate_hit_entry('id_2', 'line2', timestamp)])
+
+        scroll_response = generate_query_response([generate_hit_entry('id_3', 'line3', timestamp),
+                                                   generate_hit_entry('id_4', 'line4', timestamp)])
+        empty_scroll_response = generate_query_response([])
+        es.scroll.side_effect = [scroll_response, empty_scroll_response]
+
+        new_lines = es_follow.get_new_lines('my_index', None)
+
+        assert len(new_lines) == 4
+        messages = [e['msg'] for e in new_lines]
+        assert messages == ['line1', 'line2', 'line3', 'line4']
+
     def test_prune_only_element(self):
         es = Mock()
         es_follow = elasticsearch_follow.ElasticsearchFollow(es)
         es.search.return_value = generate_basic_query_response('id_1', 'line1', datetime(year=2019, month=1, day=1, hour=10, minute=0))
-        es.scroll.return_value = generate_scroll([])
+        es.scroll.return_value = generate_query_response([])
 
-        new_lines = es_follow.get_new_lines('my_index', None)
+        es_follow.get_new_lines('my_index', None)
 
         timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=10)
         es_follow.prune_before(timestamp)
@@ -39,7 +58,7 @@ class TestMain:
         entry_timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=10)
         entry_id = 'id_1'
         es.search.return_value = generate_basic_query_response(entry_id, 'line1', entry_timestamp)
-        es.scroll.return_value = generate_scroll([])
+        es.scroll.return_value = generate_query_response([])
 
         es_follow.get_new_lines('my_index', None)
 

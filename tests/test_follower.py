@@ -2,7 +2,7 @@ from datetime import datetime
 from unittest.mock import Mock, patch
 
 import elasticsearch_follow
-from .query_generator import generate_basic_query_response, generate_scroll
+from .query_generator import generate_basic_query_response, generate_query_response
 
 
 class TestFollower:
@@ -12,7 +12,7 @@ class TestFollower:
         patch('elasticsearch_follow.follower.datetime.datetime', new=datetime_mock).start()
 
         es = Mock()
-        es.scroll.return_value = generate_scroll([])
+        es.scroll.return_value = generate_query_response([])
 
         es_follow = elasticsearch_follow.ElasticsearchFollow(es)
         follower = elasticsearch_follow.Follower(es_follow, 'some_index', 120)
