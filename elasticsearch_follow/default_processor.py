@@ -1,4 +1,4 @@
 class DefaultProcessor:
     def process_line(self, line):
-        entries = [line[key] for key in sorted(line.keys())]
-        return ' '.join(str(entries))
+        entries = [str(line[key]) for key in sorted(line.keys())]
+        return ' '.join(entries)
