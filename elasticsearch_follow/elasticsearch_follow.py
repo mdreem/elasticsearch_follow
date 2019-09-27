@@ -20,7 +20,7 @@ class Entry:
 class ElasticsearchFollow:
     BASE_QUERY = {'query': {'bool': {'must': []}}}
 
-    def __init__(self, elasticsearch, timestamp_field='@timestamp'):
+    def __init__(self, elasticsearch, buffer_time=60, timestamp_field='@timestamp'):
         self.es = elasticsearch
         self.timestamp_field = timestamp_field
 

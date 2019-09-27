@@ -13,6 +13,8 @@ class Follower:
 
         while True:
             lines = self.elasticsearch_follow.get_new_lines(self.index, now - delta)
+            self.elasticsearch_follow.prune_before(now - delta)
+
             if not lines:
                 yield None
 
