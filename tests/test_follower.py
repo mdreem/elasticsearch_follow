@@ -6,7 +6,7 @@ from .query_generator import generate_basic_query_response, generate_query_respo
 
 
 class TestFollower:
-    def test_main(self):
+    def test_follower_returns_added_entry(self):
         datetime_mock = Mock(wraps=datetime)
         datetime_mock.utcnow = Mock(return_value=datetime(year=2019, month=1, day=1, hour=10, minute=0))
         patch('elasticsearch_follow.follower.datetime.datetime', new=datetime_mock).start()

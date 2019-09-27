@@ -2,10 +2,11 @@ import datetime
 
 
 class Follower:
-    def __init__(self, elasticsearch_follow, index, time_delta):
+    def __init__(self, elasticsearch_follow, index, time_delta=60, processor=None):
         self.elasticsearch_follow = elasticsearch_follow
         self.index = index
         self.time_delta = time_delta
+        self.processor = processor
 
     def generator(self):
         now = datetime.datetime.utcnow()
@@ -19,4 +20,6 @@ class Follower:
                 yield None
 
             for line in lines:
+                if self.processor:
+                    yield self.processor.process_line(line)
                 yield line
