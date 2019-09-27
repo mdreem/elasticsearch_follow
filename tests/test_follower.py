@@ -25,10 +25,13 @@ class TestFollower:
         timestamp = timestamp.replace(tzinfo=tz.UTC)
 
         es.search.return_value = generate_basic_query_response('id_1', 'line1', timestamp)
-        generator = follower.generator()
-        assert next(generator)['msg'] == 'line1'
-        assert next(generator) is None
+        res_first = list(follower.generator())
 
         es.search.return_value = generate_basic_query_response('id_2', 'line2', timestamp)
-        assert next(generator)['msg'] == 'line2'
-        assert next(generator) is None
+        res_second = list(follower.generator())
+
+        assert len(res_first) == 1
+        assert res_first[0]['msg'] == 'line1'
+
+        assert len(res_second) == 1
+        assert res_second[0]['msg'] == 'line2'

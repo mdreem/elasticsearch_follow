@@ -12,7 +12,7 @@ class TestMain:
         es.search.return_value = generate_basic_query_response('id_1', 'line1', datetime(year=2019, month=1, day=1, hour=10, minute=1))
         es.scroll.return_value = generate_query_response([])
 
-        new_lines = es_follow.get_new_lines('my_index', None)
+        new_lines = list(es_follow.get_new_lines('my_index', None))
 
         assert len(new_lines) == 1
         assert 'msg' in new_lines[0]
@@ -31,7 +31,7 @@ class TestMain:
         empty_scroll_response = generate_query_response([])
         es.scroll.side_effect = [scroll_response, empty_scroll_response]
 
-        new_lines = es_follow.get_new_lines('my_index', None)
+        new_lines = list(es_follow.get_new_lines('my_index', None))
 
         assert len(new_lines) == 4
         messages = [e['msg'] for e in new_lines]
@@ -43,7 +43,7 @@ class TestMain:
         es.search.return_value = generate_basic_query_response('id_1', 'line1', datetime(year=2019, month=1, day=1, hour=10, minute=0))
         es.scroll.return_value = generate_query_response([])
 
-        es_follow.get_new_lines('my_index', None)
+        list(es_follow.get_new_lines('my_index', None))
 
         timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=10)
         es_follow.prune_before(timestamp)
@@ -60,7 +60,7 @@ class TestMain:
         es.search.return_value = generate_basic_query_response(entry_id, 'line1', entry_timestamp)
         es.scroll.return_value = generate_query_response([])
 
-        es_follow.get_new_lines('my_index', None)
+        list(es_follow.get_new_lines('my_index', None))
 
         timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=0)
         es_follow.prune_before(timestamp)

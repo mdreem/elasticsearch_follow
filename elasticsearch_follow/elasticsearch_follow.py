@@ -44,30 +44,28 @@ class ElasticsearchFollow:
         scroll_id = res['_scroll_id']
         hits = res['hits']['hits']
 
+        for hit in hits:
+            yield hit
+
         while res['hits']['hits']:
             res = self.es.scroll(scroll_id=scroll_id, scroll='2m')
             scroll_id = res['_scroll_id']
             current_hits = res['hits']['hits']
-            if current_hits:
-                hits = hits + current_hits
-
-        return hits
+            for hit in current_hits:
+                yield hit
 
     def get_new_lines(self, index, timestamp):
         entries = self.get_entries_since(index, timestamp)
-        lines = []
 
         for entry in entries:
             entry_id = entry['_id']
             if entry_id not in self.added_entries:
                 new_line = entry['_source']
-                lines.append(new_line)
                 entry_timestamp = parse(new_line[self.timestamp_field])
                 heapq.heappush(self.entries_by_timestamp, Entry(timestamp=entry_timestamp, entry_id=entry_id))
 
                 self.added_entries.add(entry_id)
-
-        return lines
+                yield new_line
 
     def prune_before(self, timestamp):
         while len(self.entries_by_timestamp) > 0:

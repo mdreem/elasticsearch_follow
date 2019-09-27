@@ -42,7 +42,7 @@ class TestElasticsearch:
         es = Elasticsearch(["http://localhost:9200"])
         es_follow = elasticsearch_follow.ElasticsearchFollow(es)
 
-        new_lines = es_follow.get_new_lines('test_index', datetime(year=2019, month=1, day=1, hour=10, minute=0))
+        new_lines = list(es_follow.get_new_lines('test_index', datetime(year=2019, month=1, day=1, hour=10, minute=0)))
         print('Received: {}'.format(new_lines))
 
         assert len(new_lines) == 1
