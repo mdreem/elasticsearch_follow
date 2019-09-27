@@ -2,7 +2,7 @@ from datetime import datetime
 from unittest.mock import Mock
 
 import elasticsearch_follow
-from .query_generator import generate_basic_query_response, generate_query_response, generate_hit_entry
+from tests import generate_basic_query_response, generate_query_response, generate_hit_entry
 
 
 class TestMain:

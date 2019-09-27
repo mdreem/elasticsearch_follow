@@ -1,5 +1,7 @@
 import datetime
 
+from dateutil import tz
+
 
 class Follower:
     def __init__(self, elasticsearch_follow, index, time_delta=60, processor=None):
@@ -10,6 +12,7 @@ class Follower:
 
     def generator(self):
         now = datetime.datetime.utcnow()
+        now = now.replace(tzinfo=tz.UTC)
         delta = datetime.timedelta(seconds=self.time_delta)
 
         while True:

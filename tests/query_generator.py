@@ -19,6 +19,6 @@ def generate_hit_entry(entry_id, message, timestamp):
         '_id': entry_id,
         '_source': {
             'msg': message,
-            '@timestamp': timestamp.strftime("%Y-%m-%dT%H:%M:%S")
+            '@timestamp': timestamp.strftime("%Y-%m-%dT%H:%M:%S%Z")
         }
     }
