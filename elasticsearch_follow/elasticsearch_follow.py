@@ -18,8 +18,7 @@ class Entry:
 
 
 class ElasticsearchFollow:
-
-    def __init__(self, elasticsearch, timestamp_field='@timestamp'):
+    def __init__(self, elasticsearch, timestamp_field='@timestamp', query_string=None):
         self.es = elasticsearch
         self.timestamp_field = timestamp_field
 
@@ -32,6 +31,13 @@ class ElasticsearchFollow:
             ],
             'query': {'bool': {'must': []}}
         }
+
+        if query_string:
+            self.base_query['query']['bool']['must'].append({
+                'query_string': {
+                    'query': query_string
+                }
+            })
 
     def get_entries_since(self, index, timestamp):
         query_since = dict(self.base_query)
