@@ -20,4 +20,5 @@ class Follower:
 
             if self.processor:
                 yield self.processor.process_line(line)
-            yield line
+            else:
+                yield line
