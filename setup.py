@@ -20,6 +20,6 @@ setuptools.setup(
     tests_require=['pytest',
                    'pytest-cov',
                    'pytest-html',
-                   'elasticsearch>=6.0.0,<7.0.0'],
+                   'elasticsearch>7.0.0,<=8.0.0'],
     test_suite="tests",
 )

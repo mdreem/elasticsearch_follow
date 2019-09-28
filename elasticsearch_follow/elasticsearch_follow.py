@@ -45,7 +45,6 @@ class ElasticsearchFollow:
 
         res = self.es.search(index=index,
                              scroll='2m',
-                             doc_type='doc',
                              body=query_since)
         scroll_id = res['_scroll_id']
         hits = res['hits']['hits']

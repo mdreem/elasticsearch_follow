@@ -6,18 +6,20 @@ import elasticsearch_follow
 
 
 class TestElasticsearch:
+    def find_hit(self, hits, message):
+        return next((hit for hit in hits if hit['_source']['message'] == message), None)
 
-    def insert_line(self):
+    def insert_line(self, message, timestamp):
         es = Elasticsearch(["http://localhost:9200"])
         es.info()
 
         doc = {
-            'message': 'testMessage',
-            '@timestamp': datetime(year=2019, month=1, day=1, hour=10, minute=1),
+            'message': message,
+            '@timestamp': timestamp,
         }
 
-        res = es.index(index='test_index', doc_type='doc', id=1, body=doc)
-        print('Insert line: {}'.format(res))
+        res = es.index(index='test_index', body=doc)
+        print('Inserting line: {}'.format(res))
 
         query = {
             'size': 10000,
@@ -26,8 +28,10 @@ class TestElasticsearch:
             }
         }
         while True:
-            res = es.search(index='test_index', doc_type='doc', body=query, scroll='1m')
-            if res['hits']['hits']:
+            res = es.search(index='test_index', body=query)
+            hits = res['hits']['hits']
+            if hits and self.find_hit(hits, message):
+                print('Found ({}): {}'.format(message, hits))
                 break
         print('Check: {}'.format(res['hits']['hits']))
 
@@ -37,7 +41,7 @@ class TestElasticsearch:
 
     def test_query_line(self):
         self.delete_index('test_index')
-        self.insert_line()
+        self.insert_line(message='testMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=1))
 
         es = Elasticsearch(["http://localhost:9200"])
         es_follow = elasticsearch_follow.ElasticsearchFollow(es)
@@ -48,3 +52,25 @@ class TestElasticsearch:
         assert len(new_lines) == 1
         assert 'message' in new_lines[0]
         assert new_lines[0]['message'] == 'testMessage'
+
+    def test_query_lines_returned_ordered_by_timestamp(self):
+        self.delete_index('test_index')
+        self.insert_line(message='firstMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=1))
+        self.insert_line(message='thirdMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=3))
+        self.insert_line(message='secondMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=2))
+
+        es = Elasticsearch(["http://localhost:9200"])
+        es_follow = elasticsearch_follow.ElasticsearchFollow(es)
+
+        new_lines = list(es_follow.get_new_lines('test_index', datetime(year=2019, month=1, day=1, hour=10, minute=0)))
+        print('Received: {}'.format(new_lines))
+
+        assert len(new_lines) == 3
+        assert 'message' in new_lines[0]
+        assert new_lines[0]['message'] == 'firstMessage'
+
+        assert 'message' in new_lines[1]
+        assert new_lines[1]['message'] == 'secondMessage'
+
+        assert 'message' in new_lines[2]
+        assert new_lines[2]['message'] == 'thirdMessage'
