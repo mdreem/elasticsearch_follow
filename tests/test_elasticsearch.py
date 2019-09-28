@@ -74,3 +74,19 @@ class TestElasticsearch:
 
         assert 'message' in new_lines[2]
         assert new_lines[2]['message'] == 'thirdMessage'
+
+    def test_query_string_returns_correct_results(self):
+        self.delete_index('test_index')
+        self.insert_line(message='firstMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=1))
+        self.insert_line(message='secondMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=2))
+
+        query_string = 'message:firstMessage'
+        es = Elasticsearch(["http://localhost:9200"])
+        es_follow = elasticsearch_follow.ElasticsearchFollow(elasticsearch=es, query_string=query_string)
+
+        new_lines = list(es_follow.get_new_lines('test_index', datetime(year=2019, month=1, day=1, hour=10, minute=0)))
+        print('Received: {}'.format(new_lines))
+
+        assert len(new_lines) == 1
+        assert 'message' in new_lines[0]
+        assert new_lines[0]['message'] == 'firstMessage'
