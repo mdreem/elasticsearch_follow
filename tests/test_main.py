@@ -1,5 +1,6 @@
 from datetime import datetime
 from unittest.mock import Mock
+from dateutil import tz
 
 import elasticsearch_follow
 from tests import generate_basic_query_response, generate_query_response, generate_hit_entry
@@ -9,7 +10,8 @@ class TestMain:
     def test_fetch_one_line(self):
         es = Mock()
         es_follow = elasticsearch_follow.ElasticsearchFollow(es)
-        es.search.return_value = generate_basic_query_response('id_1', 'line1', datetime(year=2019, month=1, day=1, hour=10, minute=1))
+        timestamp_first_entry = datetime(year=2019, month=1, day=1, hour=10, minute=1, tzinfo=tz.UTC)
+        es.search.return_value = generate_basic_query_response('id_1', 'line1', timestamp_first_entry)
         es.scroll.return_value = generate_query_response([])
 
         new_lines = list(es_follow.get_new_lines('my_index', None))
@@ -22,7 +24,7 @@ class TestMain:
         es = Mock()
         es_follow = elasticsearch_follow.ElasticsearchFollow(es)
 
-        timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=1)
+        timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=1, tzinfo=tz.UTC)
         es.search.return_value = generate_query_response([generate_hit_entry('id_1', 'line1', timestamp),
                                                           generate_hit_entry('id_2', 'line2', timestamp)])
 
@@ -40,12 +42,13 @@ class TestMain:
     def test_prune_only_element(self):
         es = Mock()
         es_follow = elasticsearch_follow.ElasticsearchFollow(es)
-        es.search.return_value = generate_basic_query_response('id_1', 'line1', datetime(year=2019, month=1, day=1, hour=10, minute=0))
+        timestamp_first_entry = datetime(year=2019, month=1, day=1, hour=10, minute=0, tzinfo=tz.UTC)
+        es.search.return_value = generate_basic_query_response('id_1', 'line1', timestamp_first_entry)
         es.scroll.return_value = generate_query_response([])
 
         list(es_follow.get_new_lines('my_index', None))
 
-        timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=10)
+        timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=10, tzinfo=tz.UTC)
         es_follow.prune_before(timestamp)
 
         assert len(es_follow.added_entries) == 0
@@ -55,14 +58,14 @@ class TestMain:
         es = Mock()
         es_follow = elasticsearch_follow.ElasticsearchFollow(es)
 
-        entry_timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=10)
+        entry_timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=10, tzinfo=tz.UTC)
         entry_id = 'id_1'
         es.search.return_value = generate_basic_query_response(entry_id, 'line1', entry_timestamp)
         es.scroll.return_value = generate_query_response([])
 
         list(es_follow.get_new_lines('my_index', None))
 
-        timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=0)
+        timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=0, tzinfo=tz.UTC)
         es_follow.prune_before(timestamp)
 
         assert len(es_follow.added_entries) == 1
@@ -77,7 +80,7 @@ class TestMain:
         es = Mock()
         es_follow = elasticsearch_follow.ElasticsearchFollow(es)
 
-        timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=10)
+        timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=10, tzinfo=tz.UTC)
         es_follow.prune_before(timestamp)
 
         assert len(es_follow.added_entries) == 0

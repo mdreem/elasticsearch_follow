@@ -21,8 +21,7 @@ class TestFollower:
         es_follow = elasticsearch_follow.ElasticsearchFollow(es)
         follower = elasticsearch_follow.Follower(es_follow, 'some_index', 120)
 
-        timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=1)
-        timestamp = timestamp.replace(tzinfo=tz.UTC)
+        timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=1, tzinfo=tz.UTC)
 
         es.search.return_value = generate_basic_query_response('id_1', 'line1', timestamp)
         res_first = list(follower.generator())

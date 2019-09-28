@@ -1,6 +1,8 @@
 import heapq
+from copy import deepcopy
 from functools import total_ordering
 
+import pytz
 from dateutil.parser import parse
 
 
@@ -40,7 +42,7 @@ class ElasticsearchFollow:
             })
 
     def get_entries_since(self, index, timestamp):
-        query_since = dict(self.base_query)
+        query_since = deepcopy(self.base_query)
         query_since['query']['bool']['must'].append({
             'range': {
                 self.timestamp_field: {
@@ -65,6 +67,8 @@ class ElasticsearchFollow:
             for hit in current_hits:
                 yield hit
 
+        self.es.clear_scroll(scroll_id)
+
     def get_new_lines(self, index, timestamp):
         entries = self.get_entries_since(index, timestamp)
 
@@ -73,6 +77,8 @@ class ElasticsearchFollow:
             if entry_id not in self.added_entries:
                 new_line = entry['_source']
                 entry_timestamp = parse(new_line[self.timestamp_field])
+                if not entry_timestamp.tzinfo:
+                    entry_timestamp = pytz.utc.localize(entry_timestamp)
                 heapq.heappush(self.entries_by_timestamp, Entry(timestamp=entry_timestamp, entry_id=entry_id))
 
                 self.added_entries.add(entry_id)

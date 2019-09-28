@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from dateutil import tz
 from elasticsearch import Elasticsearch
 
 import elasticsearch_follow
@@ -41,12 +42,12 @@ class TestElasticsearch:
 
     def test_query_line(self):
         self.delete_index('test_index')
-        self.insert_line(message='testMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=1))
+        self.insert_line(message='testMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=1, tzinfo=tz.UTC))
 
         es = Elasticsearch(["http://localhost:9200"])
         es_follow = elasticsearch_follow.ElasticsearchFollow(es)
 
-        new_lines = list(es_follow.get_new_lines('test_index', datetime(year=2019, month=1, day=1, hour=10, minute=0)))
+        new_lines = list(es_follow.get_new_lines('test_index', datetime(year=2019, month=1, day=1, hour=10, minute=0, tzinfo=tz.UTC)))
         print('Received: {}'.format(new_lines))
 
         assert len(new_lines) == 1
@@ -55,14 +56,14 @@ class TestElasticsearch:
 
     def test_query_lines_returned_ordered_by_timestamp(self):
         self.delete_index('test_index')
-        self.insert_line(message='firstMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=1))
-        self.insert_line(message='thirdMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=3))
-        self.insert_line(message='secondMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=2))
+        self.insert_line(message='firstMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=1, tzinfo=tz.UTC))
+        self.insert_line(message='thirdMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=3, tzinfo=tz.UTC))
+        self.insert_line(message='secondMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=2, tzinfo=tz.UTC))
 
         es = Elasticsearch(["http://localhost:9200"])
         es_follow = elasticsearch_follow.ElasticsearchFollow(es)
 
-        new_lines = list(es_follow.get_new_lines('test_index', datetime(year=2019, month=1, day=1, hour=10, minute=0)))
+        new_lines = list(es_follow.get_new_lines('test_index', datetime(year=2019, month=1, day=1, hour=10, minute=0, tzinfo=tz.UTC)))
         print('Received: {}'.format(new_lines))
 
         assert len(new_lines) == 3
@@ -77,14 +78,14 @@ class TestElasticsearch:
 
     def test_query_string_returns_correct_results(self):
         self.delete_index('test_index')
-        self.insert_line(message='firstMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=1))
-        self.insert_line(message='secondMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=2))
+        self.insert_line(message='firstMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=1, tzinfo=tz.UTC))
+        self.insert_line(message='secondMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=2, tzinfo=tz.UTC))
 
         query_string = 'message:firstMessage'
         es = Elasticsearch(["http://localhost:9200"])
         es_follow = elasticsearch_follow.ElasticsearchFollow(elasticsearch=es, query_string=query_string)
 
-        new_lines = list(es_follow.get_new_lines('test_index', datetime(year=2019, month=1, day=1, hour=10, minute=0)))
+        new_lines = list(es_follow.get_new_lines('test_index', datetime(year=2019, month=1, day=1, hour=10, minute=0, tzinfo=tz.UTC)))
         print('Received: {}'.format(new_lines))
 
         assert len(new_lines) == 1

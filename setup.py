@@ -12,9 +12,11 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/mdreem/elasticsearch_follow",
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(exclude=['tests', 'examples']),
     classifiers=[
         "Operating System :: OS Independent",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3"
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest',
