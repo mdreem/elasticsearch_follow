@@ -18,7 +18,6 @@ class Entry:
 
 
 class ElasticsearchFollow:
-    BASE_QUERY = {'query': {'bool': {'must': []}}}
 
     def __init__(self, elasticsearch, timestamp_field='@timestamp'):
         self.es = elasticsearch
@@ -27,8 +26,15 @@ class ElasticsearchFollow:
         self.added_entries = set()
         self.entries_by_timestamp = []
 
+        self.base_query = {
+            "sort": [
+                {self.timestamp_field: "asc"}
+            ],
+            'query': {'bool': {'must': []}}
+        }
+
     def get_entries_since(self, index, timestamp):
-        query_since = dict(self.BASE_QUERY)
+        query_since = dict(self.base_query)
         query_since['query']['bool']['must'].append({
             'range': {
                 self.timestamp_field: {
