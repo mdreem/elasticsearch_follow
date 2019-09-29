@@ -21,6 +21,7 @@ def run(host):
     processor = ExampleProcessor()
     follower = elasticsearch_follow.Follower(elasticsearch_follow=es_follow, index='test_index', time_delta=60, processor=processor)
 
+    print('Started...')
     while True:
         entries = follower.generator()
         for entry in entries:

@@ -13,6 +13,11 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/mdreem/elasticsearch_follow",
     packages=setuptools.find_packages(exclude=['tests', 'examples']),
+    install_requires=[
+        'python-dateutil',
+        'elasticsearch',
+        'pytz'
+    ],
     classifiers=[
         "Operating System :: OS Independent",
         "License :: OSI Approved :: MIT License",
