@@ -56,3 +56,43 @@ jobs:
       - store_artifacts:
           path: test-reports
           destination: test-reports
+
+      - run:
+          name: build dist
+          command: |
+            . venv/bin/activate
+            python setup.py sdist
+
+      - store_artifacts:
+          path: dist
+          destination: dist
+
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - dist/*
+
+  publish-github-release:
+    docker:
+      - image: cibuilds/github:0.10
+    working_directory: ~/repo
+    steps:
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            VERSION=$(ls ~/repo/dist/* | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+")
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete v${VERSION} dist/*
+
+workflows:
+  version: 2
+  workflow:
+    jobs:
+    - build
+    - publish-github-release:
+        requires:
+          - build
+        filters:
+          tags:
+            only: /^v\d+\.\d+\.\d+$/

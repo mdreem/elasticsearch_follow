@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="elasticsearch_follow",
-    version="0.0.1",
+    version="0.1.0",
     author="Marc Schiereck",
     author_email="mdreem@fastmail.fm",
     description="An Elasticsearch tail",
@@ -23,7 +23,6 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3"
     ],
-    setup_requires=['pytest-runner'],
     tests_require=['pytest',
                    'pytest-cov',
                    'pytest-html',
