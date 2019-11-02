@@ -2,3 +2,4 @@ python-dateutil
 elasticsearch
 pytz
 pytest-runner
+coveralls

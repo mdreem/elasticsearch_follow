@@ -61,6 +61,12 @@ jobs:
           destination: test-reports
 
       - run:
+          name: push coverage to coveralls
+          command: |
+            . venv/bin/activate
+            coveralls --service=circleci
+
+      - run:
           name: build dist
           command: |
             . venv/bin/activate
