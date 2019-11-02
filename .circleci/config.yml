@@ -76,6 +76,8 @@ jobs:
     filters:
       tags:
         only: /^v\d+\.\d+\.\d+$/
+      branches:
+        ignore: /.*/
     docker:
       - image: cibuilds/github:0.10
     working_directory: ~/repo
@@ -99,3 +101,5 @@ workflows:
         filters:
           tags:
             only: /^v\d+\.\d+\.\d+$/
+          branches:
+            ignore: /.*/
