@@ -73,6 +73,9 @@ jobs:
             - dist/*
 
   publish-github-release:
+    filters:
+      tags:
+        only: /^v\d+\.\d+\.\d+$/
     docker:
       - image: cibuilds/github:0.10
     working_directory: ~/repo
