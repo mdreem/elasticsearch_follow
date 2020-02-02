@@ -117,9 +117,33 @@ jobs:
 
 workflows:
   version: 2
-  workflow:
+  build-and-test:
     jobs:
     - build
+    - publish-github-release:
+        requires:
+          - build
+        filters:
+          tags:
+            only: /^v.*/
+          branches:
+            ignore: /.*/
+    - publish-pypi-release:
+        requires:
+          - build
+        filters:
+          tags:
+            only: /^v.*/
+          branches:
+            ignore: /.*/
+  build-and-test-and-deploy:
+    jobs:
+    - build:
+        filters:
+          tags:
+            only: /^v.*/
+          branches:
+            ignore: /.*/
     - publish-github-release:
         requires:
           - build
