@@ -67,7 +67,7 @@ class ElasticsearchFollow:
             for hit in current_hits:
                 yield hit
 
-        self.es.clear_scroll(scroll_id)
+        self.es.clear_scroll(scroll_id=scroll_id)
 
     def get_new_lines(self, index, timestamp):
         entries = self.get_entries_since(index, timestamp)
