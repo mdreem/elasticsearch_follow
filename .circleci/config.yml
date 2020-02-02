@@ -93,8 +93,7 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
-            VERSION=$(ls ~/repo/dist/* | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+")
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete v${VERSION} dist/*
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} dist/*
 
   publish-pypi-release:
     docker:
@@ -104,16 +103,16 @@ jobs:
       - attach_workspace:
           at: ~/repo
       - run:
-          name: init .pypirc
+          name: install dependencies
           command: |
-            echo -e "[pypi]" >> ~/.pypirc
-            echo -e "username = $$PYPI_USERNAME" >> ~/.pypirc
-            echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install --upgrade twine
       - run:
           name: "Publish Release on PyPi"
           command: |
             . venv/bin/activate
-            twine upload ~/repo/dist/*
+            twine upload -u $PYPI_USERNAME -p $PYPI_PASSWORD  ~/repo/dist/*
 
 workflows:
   version: 2
