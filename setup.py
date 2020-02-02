@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="elasticsearch_follow",
-    version="0.1.2",
+    version="0.1.3",
     author="Marc Schiereck",
     author_email="mdreem@fastmail.fm",
     description="An Elasticsearch tail",

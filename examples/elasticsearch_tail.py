@@ -35,4 +35,4 @@ if __name__ == "__main__":
     parser.add_argument('--index', default='test_index', type=str)
 
     args = parser.parse_args()
-    run(args.host)
+    run(args.host, args.index)
