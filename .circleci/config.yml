@@ -84,11 +84,6 @@ jobs:
             - dist/*
 
   publish-github-release:
-    filters:
-      tags:
-        only: /^v\d+\.\d+\.\d+$/
-      branches:
-        ignore: /.*/
     docker:
       - image: cibuilds/github:0.10
     working_directory: ~/repo
@@ -102,11 +97,6 @@ jobs:
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete v${VERSION} dist/*
 
   publish-pypi-release:
-    filters:
-      tags:
-        only: /^v\d+\.\d+\.\d+$/
-      branches:
-        ignore: /.*/
     docker:
       - image: circleci/python:3.6.1
     working_directory: ~/repo
@@ -135,7 +125,7 @@ workflows:
           - build
         filters:
           tags:
-            only: /^v\d+\.\d+\.\d+$/
+            only: /^v.*/
           branches:
             ignore: /.*/
     - publish-pypi-release:
@@ -143,6 +133,6 @@ workflows:
           - build
         filters:
           tags:
-            only: /^v\d+\.\d+\.\d+$/
+            only: /^v.*/
           branches:
             ignore: /.*/
