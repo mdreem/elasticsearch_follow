@@ -14,9 +14,9 @@ class ExampleProcessor:
         return ' '.join(entries)
 
 
-def run(host, index):
+def run(host, index, query):
     es = elasticsearch.Elasticsearch([host])
-    es_follow = elasticsearch_follow.ElasticsearchFollow(es)
+    es_follow = elasticsearch_follow.ElasticsearchFollow(elasticsearch=es, query_string=query)
 
     processor = ExampleProcessor()
     follower = elasticsearch_follow.Follower(elasticsearch_follow=es_follow, index=index, time_delta=60, processor=processor)
@@ -33,6 +33,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--host', default='http://localhost:9200', type=str)
     parser.add_argument('--index', default='test_index', type=str)
+    parser.add_argument('--query', default=None, type=str)
 
     args = parser.parse_args()
-    run(args.host, args.index)
+    run(args.host, args.index, args.query)
