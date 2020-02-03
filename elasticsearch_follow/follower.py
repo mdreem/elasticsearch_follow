@@ -19,6 +19,8 @@ class Follower:
             self.elasticsearch_follow.prune_before(now - delta)
 
             if self.processor:
-                yield self.processor.process_line(line)
+                processed_line = self.processor.process_line(line)
+                if processed_line:
+                    yield processed_line
             else:
                 yield line
