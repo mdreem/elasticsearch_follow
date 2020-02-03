@@ -1,5 +1,6 @@
 from datetime import datetime
 from unittest.mock import Mock
+
 from dateutil import tz
 
 import elasticsearch_follow
@@ -85,3 +86,17 @@ class TestMain:
 
         assert len(es_follow.added_entries) == 0
         assert len(es_follow.entries_by_timestamp) == 0
+
+    def test_set_missing_timestamp_to_entry(self):
+        es = Mock()
+        es_follow = elasticsearch_follow.ElasticsearchFollow(es)
+        timestamp_first_entry = datetime(year=2019, month=1, day=1, hour=10, minute=1, tzinfo=tz.UTC)
+        es.search.return_value = generate_basic_query_response('id_1', 'line1', timestamp_first_entry, False)
+        es.scroll.return_value = generate_query_response([])
+
+        new_lines = list(es_follow.get_new_lines('my_index', None))
+
+        assert len(new_lines) == 1
+        assert 'msg' in new_lines[0]
+        assert new_lines[0]['msg'] == 'line1'
+        print(new_lines)
