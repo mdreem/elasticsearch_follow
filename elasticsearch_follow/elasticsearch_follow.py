@@ -99,13 +99,16 @@ class ElasticsearchFollow:
             entry_id = entry['_id']
             if entry_id not in self.added_entries:
                 new_line = entry['_source']
-                entry_timestamp = parse(new_line[self.timestamp_field])
-                if not entry_timestamp.tzinfo:
-                    entry_timestamp = pytz.utc.localize(entry_timestamp)
-                heapq.heappush(self.entries_by_timestamp, Entry(timestamp=entry_timestamp, entry_id=entry_id))
+                self._update_entries_by_timestamp(entry_id, new_line)
 
                 self.added_entries.add(entry_id)
                 yield new_line
+
+    def _update_entries_by_timestamp(self, entry_id, new_line):
+        entry_timestamp = parse(new_line[self.timestamp_field])
+        if not entry_timestamp.tzinfo:
+            entry_timestamp = pytz.utc.localize(entry_timestamp)
+        heapq.heappush(self.entries_by_timestamp, Entry(timestamp=entry_timestamp, entry_id=entry_id))
 
     def prune_before(self, timestamp):
         """
