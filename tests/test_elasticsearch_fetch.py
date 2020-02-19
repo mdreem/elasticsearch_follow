@@ -5,9 +5,11 @@ from elasticsearch import Elasticsearch
 
 import elasticsearch_follow
 
-TIMESTAMP_THREE = datetime(year=2019, month=1, day=1, hour=10, minute=3, tzinfo=tz.UTC)
-TIMESTAMP_TWO = datetime(year=2019, month=1, day=1, hour=10, minute=2, tzinfo=tz.UTC)
 TIMESTAMP_ONE = datetime(year=2019, month=1, day=1, hour=10, minute=1, tzinfo=tz.UTC)
+TIMESTAMP_TWO = datetime(year=2019, month=1, day=1, hour=10, minute=2, tzinfo=tz.UTC)
+TIMESTAMP_THREE = datetime(year=2019, month=1, day=1, hour=10, minute=3, tzinfo=tz.UTC)
+TIMESTAMP_FOUR = datetime(year=2019, month=1, day=1, hour=10, minute=4, tzinfo=tz.UTC)
+TIMESTAMP_FIVE = datetime(year=2019, month=1, day=1, hour=10, minute=5, tzinfo=tz.UTC)
 
 
 class TestElasticsearchFetch:
@@ -96,3 +98,40 @@ class TestElasticsearchFetch:
         self.assert_sort_field_expected(new_lines, 0, TIMESTAMP_ONE, 0)
         self.assert_sort_field_expected(new_lines, 1, TIMESTAMP_TWO, 2)
         self.assert_sort_field_expected(new_lines, 2, TIMESTAMP_THREE, 1)
+
+    def test_search_surrounding_lines(self):
+        self.delete_index('test_index')
+        self.insert_line(message='testMessage1', timestamp=TIMESTAMP_ONE)
+        self.insert_line(message='testMessage2', timestamp=TIMESTAMP_TWO)
+        self.insert_line(message='testMessage3', timestamp=TIMESTAMP_THREE)
+        self.insert_line(message='testMessage4', timestamp=TIMESTAMP_FOUR)
+        self.insert_line(message='testMessage5', timestamp=TIMESTAMP_FIVE)
+
+        es = Elasticsearch(["http://localhost:9200"])
+        es_fetch = elasticsearch_follow.ElasticsearchFetch(es)
+
+        new_lines = es_fetch.search('test_index')
+        new_lines = new_lines['hits']['hits']
+        print('Received: {}'.format(new_lines))
+
+        middle_timestamp = TIMESTAMP_THREE.timestamp() * 1000
+        middle_docid = 2
+
+        print(middle_timestamp)
+        print(middle_docid)
+
+        results_before = es_fetch.search_nearby('test_index', timestamp=middle_timestamp, doc_id=middle_docid, after=False, number=2)
+        results_before = results_before['hits']['hits']
+        results_after = es_fetch.search_nearby('test_index', timestamp=middle_timestamp, doc_id=middle_docid, after=True, number=2)
+        results_after = results_after['hits']['hits']
+
+        print('results_before: {}'.format(results_before))
+        print('results_after: {}'.format(results_after))
+
+        assert len(results_before) == 2
+        self.assert_message_in_line(results_before, 0, 'testMessage2')
+        self.assert_message_in_line(results_before, 1, 'testMessage1')
+
+        assert len(results_after) == 2
+        self.assert_message_in_line(results_after, 0, 'testMessage4')
+        self.assert_message_in_line(results_after, 1, 'testMessage5')
