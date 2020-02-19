@@ -99,6 +99,23 @@ class TestElasticsearchFetch:
         self.assert_sort_field_expected(new_lines, 1, TIMESTAMP_TWO, 2)
         self.assert_sort_field_expected(new_lines, 2, TIMESTAMP_THREE, 1)
 
+    def test_search_lines_with_query_string(self):
+        self.delete_index('test_index')
+        self.insert_line(message='testMessage1', timestamp=TIMESTAMP_ONE)
+        self.insert_line(message='testMessage2', timestamp=TIMESTAMP_TWO)
+        self.insert_line(message='testMessage3', timestamp=TIMESTAMP_THREE)
+
+        es = Elasticsearch(["http://localhost:9200"])
+        es_fetch = elasticsearch_follow.ElasticsearchFetch(es)
+
+        new_lines = es_fetch.search('test_index', query_string='message:testMessage2')
+        new_lines = new_lines['hits']['hits']
+        print('Received: {}'.format(new_lines))
+
+        assert len(new_lines) == 1
+        self.assert_message_in_line(new_lines, 0, 'testMessage2')
+        self.assert_sort_field_expected(new_lines, 0, TIMESTAMP_TWO, 1)
+
     def test_search_surrounding_lines(self):
         self.delete_index('test_index')
         self.insert_line(message='testMessage1', timestamp=TIMESTAMP_ONE)
