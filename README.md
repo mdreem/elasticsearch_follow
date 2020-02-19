@@ -5,21 +5,21 @@
 
 elasticsearch_follow is library helping to query Elasticsearch continuously.
 
-It needs https://github.com/elastic/elasticsearch-py as a dependency.
+It needs <https://github.com/elastic/elasticsearch-py> as a dependency.
 
-# Installation
+## Installation
 
 You can install the ``elasticsearch`` package with pip:
 
-```
+```bash
 pip install elasticsearch_follow
 ```
 
-See also: https://pypi.org/project/elasticsearch-follow/
+See also: <https://pypi.org/project/elasticsearch-follow/>
 
-# Example use
+## Example use
 
-```
+```python
 from elasticsearch import Elasticsearch
 from elasticsearch_follow import ElasticsearchFollow, Follower
 
