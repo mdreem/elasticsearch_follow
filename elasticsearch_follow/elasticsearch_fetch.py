@@ -68,6 +68,24 @@ class ElasticsearchFetch:
 
         return self.es.search(index=index, body=query)
 
+    def _extract_source(self, line):
+        if line['hits']['hits']:
+            return list(map(lambda x: x['_source'], line['hits']['hits']))
+        else:
+            return []
+
+    def search_surrounding(self, index, query_string=None, num_before=0, num_after=0):
+        search_result = self.search(index, query_string)
+
+        for hit in self.get_hits(search_result):
+            line = hit['_source']
+            line_timestamp, line_doc_id = hit['sort']
+
+            lines_before = self.search_nearby(index=index, timestamp=line_timestamp, doc_id=line_doc_id, after=False, number=num_before)
+            lines_after = self.search_nearby(index=index, timestamp=line_timestamp, doc_id=line_doc_id, after=True, number=num_after)
+
+            yield list(reversed(self._extract_source(lines_before))) + [line] + self._extract_source(lines_after)
+
     def get_hits(self, search_result):
         res = search_result
         scroll_id = res['_scroll_id']
