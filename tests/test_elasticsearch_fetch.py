@@ -46,10 +46,14 @@ class TestElasticsearchFetch:
         es = Elasticsearch(["http://localhost:9200"])
         es.indices.delete(index=name, ignore=[400, 404])
 
-    def assert_message_in_line(self, lines, line_number, message):
+    def assert_source_with_message_in_line(self, lines, line_number, message):
         assert '_source' in lines[line_number]
         assert 'message' in lines[line_number]['_source']
         assert lines[line_number]['_source']['message'] == message
+
+    def assert_message_in_line(self, lines, line_number, message):
+        assert 'message' in lines[line_number]
+        assert lines[line_number]['message'] == message
 
     def assert_sort_field_expected(self, lines, line_number, timestamp, doc_id):
         assert 'sort' in lines[line_number]
@@ -69,9 +73,9 @@ class TestElasticsearchFetch:
         print('Received: {}'.format(new_lines))
 
         assert len(new_lines) == 3
-        self.assert_message_in_line(new_lines, 0, 'testMessage1')
-        self.assert_message_in_line(new_lines, 1, 'testMessage2')
-        self.assert_message_in_line(new_lines, 2, 'testMessage3')
+        self.assert_source_with_message_in_line(new_lines, 0, 'testMessage1')
+        self.assert_source_with_message_in_line(new_lines, 1, 'testMessage2')
+        self.assert_source_with_message_in_line(new_lines, 2, 'testMessage3')
 
         self.assert_sort_field_expected(new_lines, 0, TIMESTAMP_ONE, 0)
         self.assert_sort_field_expected(new_lines, 1, TIMESTAMP_TWO, 1)
@@ -91,9 +95,9 @@ class TestElasticsearchFetch:
         print('Received: {}'.format(new_lines))
 
         assert len(new_lines) == 3
-        self.assert_message_in_line(new_lines, 0, 'testMessage1')
-        self.assert_message_in_line(new_lines, 1, 'testMessage3')
-        self.assert_message_in_line(new_lines, 2, 'testMessage2')
+        self.assert_source_with_message_in_line(new_lines, 0, 'testMessage1')
+        self.assert_source_with_message_in_line(new_lines, 1, 'testMessage3')
+        self.assert_source_with_message_in_line(new_lines, 2, 'testMessage2')
 
         self.assert_sort_field_expected(new_lines, 0, TIMESTAMP_ONE, 0)
         self.assert_sort_field_expected(new_lines, 1, TIMESTAMP_TWO, 2)
@@ -113,8 +117,41 @@ class TestElasticsearchFetch:
         print('Received: {}'.format(new_lines))
 
         assert len(new_lines) == 1
-        self.assert_message_in_line(new_lines, 0, 'testMessage2')
+        self.assert_source_with_message_in_line(new_lines, 0, 'testMessage2')
         self.assert_sort_field_expected(new_lines, 0, TIMESTAMP_TWO, 1)
+
+    def test_search_nearby_lines(self):
+        self.delete_index('test_index')
+        self.insert_line(message='testMessage1', timestamp=TIMESTAMP_ONE)
+        self.insert_line(message='testMessage2', timestamp=TIMESTAMP_TWO)
+        self.insert_line(message='testMessage3', timestamp=TIMESTAMP_THREE)
+        self.insert_line(message='testMessage4', timestamp=TIMESTAMP_FOUR)
+        self.insert_line(message='testMessage5', timestamp=TIMESTAMP_FIVE)
+
+        es = Elasticsearch(["http://localhost:9200"])
+        es_fetch = elasticsearch_follow.ElasticsearchFetch(es)
+
+        middle_timestamp = TIMESTAMP_THREE.timestamp() * 1000
+        middle_docid = 2
+
+        print(middle_timestamp)
+        print(middle_docid)
+
+        results_before = es_fetch.search_nearby('test_index', timestamp=middle_timestamp, doc_id=middle_docid, after=False, number=2)
+        results_before = results_before['hits']['hits']
+        results_after = es_fetch.search_nearby('test_index', timestamp=middle_timestamp, doc_id=middle_docid, after=True, number=2)
+        results_after = results_after['hits']['hits']
+
+        print('results_before: {}'.format(results_before))
+        print('results_after: {}'.format(results_after))
+
+        assert len(results_before) == 2
+        self.assert_source_with_message_in_line(results_before, 0, 'testMessage2')
+        self.assert_source_with_message_in_line(results_before, 1, 'testMessage1')
+
+        assert len(results_after) == 2
+        self.assert_source_with_message_in_line(results_after, 0, 'testMessage4')
+        self.assert_source_with_message_in_line(results_after, 1, 'testMessage5')
 
     def test_search_surrounding_lines(self):
         self.delete_index('test_index')
@@ -137,18 +174,37 @@ class TestElasticsearchFetch:
         print(middle_timestamp)
         print(middle_docid)
 
-        results_before = es_fetch.search_nearby('test_index', timestamp=middle_timestamp, doc_id=middle_docid, after=False, number=2)
-        results_before = results_before['hits']['hits']
-        results_after = es_fetch.search_nearby('test_index', timestamp=middle_timestamp, doc_id=middle_docid, after=True, number=2)
-        results_after = results_after['hits']['hits']
+        results = list(es_fetch.search_surrounding(index='test_index', num_before=2, num_after=2))
 
-        print('results_before: {}'.format(results_before))
-        print('results_after: {}'.format(results_after))
+        print('results: {}'.format(results))
 
-        assert len(results_before) == 2
-        self.assert_message_in_line(results_before, 0, 'testMessage2')
-        self.assert_message_in_line(results_before, 1, 'testMessage1')
+        assert len(results) == 5
 
-        assert len(results_after) == 2
-        self.assert_message_in_line(results_after, 0, 'testMessage4')
-        self.assert_message_in_line(results_after, 1, 'testMessage5')
+        assert len(results[0]) == 3
+        self.assert_message_in_line(results[0], 0, 'testMessage1')
+        self.assert_message_in_line(results[0], 1, 'testMessage2')
+        self.assert_message_in_line(results[0], 2, 'testMessage3')
+
+        assert len(results[1]) == 4
+        self.assert_message_in_line(results[1], 0, 'testMessage1')
+        self.assert_message_in_line(results[1], 1, 'testMessage2')
+        self.assert_message_in_line(results[1], 2, 'testMessage3')
+        self.assert_message_in_line(results[1], 3, 'testMessage4')
+
+        assert len(results[2]) == 5
+        self.assert_message_in_line(results[2], 0, 'testMessage1')
+        self.assert_message_in_line(results[2], 1, 'testMessage2')
+        self.assert_message_in_line(results[2], 2, 'testMessage3')
+        self.assert_message_in_line(results[2], 3, 'testMessage4')
+        self.assert_message_in_line(results[2], 4, 'testMessage5')
+
+        assert len(results[3]) == 4
+        self.assert_message_in_line(results[3], 0, 'testMessage2')
+        self.assert_message_in_line(results[3], 1, 'testMessage3')
+        self.assert_message_in_line(results[3], 2, 'testMessage4')
+        self.assert_message_in_line(results[3], 3, 'testMessage5')
+
+        assert len(results[4]) == 3
+        self.assert_message_in_line(results[4], 0, 'testMessage3')
+        self.assert_message_in_line(results[4], 1, 'testMessage4')
+        self.assert_message_in_line(results[4], 2, 'testMessage5')
