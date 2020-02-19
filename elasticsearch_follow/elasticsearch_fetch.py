@@ -35,3 +35,35 @@ class ElasticsearchFetch:
                              scroll='2m',
                              body=query)
         return res
+
+    def search_nearby(self, index, timestamp, doc_id, after=True, number=0):
+        """
+        Fetching
+        :param index: The index to search in. May contain wildcards.
+        :param timestamp: The number returned as the first parameter in 'sort' return from search.
+        :param doc_id: The number returned as the second parameter in 'sort' return from search.
+        :param after: If after=True, search after the baseline. If after=False, search after baseline.
+        :param number: Number of lines after the entry defined by timestamp and doc_id
+        :return:
+        """
+
+        if after:
+            query = {
+                'search_after': [timestamp, doc_id],
+                'size': number,
+                'sort': [
+                    {self.timestamp_field: 'asc'},
+                    {'_doc': 'desc'}
+                ]
+            }
+        else:
+            query = {
+                'search_after': [timestamp, doc_id],
+                'size': number,
+                'sort': [
+                    {self.timestamp_field: 'desc'},
+                    {'_doc': 'asc'}
+                ]
+            }
+
+        return self.es.search(index=index, body=query)
