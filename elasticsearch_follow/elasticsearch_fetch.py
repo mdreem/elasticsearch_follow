@@ -68,7 +68,8 @@ class ElasticsearchFetch:
 
         return self.es.search(index=index, body=query)
 
-    def _extract_source(self, line):
+    @staticmethod
+    def _extract_source(line):
         if line['hits']['hits']:
             return list(map(lambda x: x['_source'], line['hits']['hits']))
         else:
