@@ -67,3 +67,20 @@ class ElasticsearchFetch:
             }
 
         return self.es.search(index=index, body=query)
+
+    def get_hits(self, search_result):
+        res = search_result
+        scroll_id = res['_scroll_id']
+        hits = res['hits']['hits']
+
+        for hit in hits:
+            yield hit
+
+        while res['hits']['hits']:
+            res = self.es.scroll(scroll_id=scroll_id, scroll='2m')
+            scroll_id = res['_scroll_id']
+            current_hits = res['hits']['hits']
+            for hit in current_hits:
+                yield hit
+
+        self.es.clear_scroll(scroll_id=scroll_id)

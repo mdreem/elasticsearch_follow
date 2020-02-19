@@ -5,4 +5,4 @@ from .elasticsearch_follow import ElasticsearchFollow
 from .elasticsearch_fetch import ElasticsearchFetch
 from .follower import Follower
 
-__all__ = ['ElasticsearchFollow', 'Follower', 'DefaultProcessor']
+__all__ = ['ElasticsearchFollow', 'ElasticsearchFetch', 'Follower', 'DefaultProcessor']

@@ -5,6 +5,8 @@ from functools import total_ordering
 import pytz
 from dateutil.parser import parse
 
+from .elasticsearch_fetch import ElasticsearchFetch
+
 
 @total_ordering
 class Entry:
@@ -28,6 +30,7 @@ class ElasticsearchFollow:
         :param query_string: The query used to fetch data from elasticsearch.
         """
         self.es = elasticsearch
+        self.es_fetch = ElasticsearchFetch(elasticsearch=elasticsearch, timestamp_field=timestamp_field)
         self.timestamp_field = timestamp_field
 
         self.added_entries = set()
@@ -68,20 +71,7 @@ class ElasticsearchFollow:
         res = self.es.search(index=index,
                              scroll='2m',
                              body=query_since)
-        scroll_id = res['_scroll_id']
-        hits = res['hits']['hits']
-
-        for hit in hits:
-            yield hit
-
-        while res['hits']['hits']:
-            res = self.es.scroll(scroll_id=scroll_id, scroll='2m')
-            scroll_id = res['_scroll_id']
-            current_hits = res['hits']['hits']
-            for hit in current_hits:
-                yield hit
-
-        self.es.clear_scroll(scroll_id=scroll_id)
+        yield from self.es_fetch.get_hits(res)
 
     def get_new_lines(self, index, timestamp):
         """
