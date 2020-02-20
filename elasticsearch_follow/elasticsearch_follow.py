@@ -12,7 +12,7 @@ class ElasticsearchFollow:
         :param elasticsearch: elasticsearch instance from the ``elasticsearch``-library.
         :param timestamp_field: Denotes which field in the elasticsearch-index is used
             as the timestamp.
-        :param query_string: The query used to fetch data from elasticsearch.
+        :param query_string: The query used to fetch data from Elasticsearch.
         """
         self.es = elasticsearch
         self.es_fetch = ElasticsearchFetch(elasticsearch=elasticsearch, timestamp_field=timestamp_field)

@@ -3,9 +3,31 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/d192317c5ff74fd7a17dc5c0c2f13317)](https://www.codacy.com/manual/mdreem/elasticsearch_follow?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mdreem/elasticsearch_follow&amp;utm_campaign=Badge_Grade)
 [![Coverage Status](https://coveralls.io/repos/github/mdreem/elasticsearch_follow/badge.svg?branch=master)](https://coveralls.io/github/mdreem/elasticsearch_follow?branch=master)
 
+## Overview
+
 elasticsearch_follow is library helping to query Elasticsearch continuously.
 
 It needs <https://github.com/elastic/elasticsearch-py> as a dependency.
+
+elasticsearch_follow acts as a wrapper for elasticsearch-py and handles various
+use-cases, like following logs by polling elasticsearch continuously and fetching
+loglines via a generator. It is possible to easily fetch lines surrounding a
+given logline.
+
+### How to poll Elasticsearch continuously
+
+The polling logic is implemented in the class ElasticsearchFollow, which needs
+an Elasircsearch object from elasticsearch-py. The class Follower takes an
+ElasticsearchFollow-object and has a method to create a generator which yields
+loglines until all elements of a query have been returned. After this a new
+generator has to be created and used.
+
+### How to fetch log-lines from Elasticsearch
+
+To just fetch loglines, one can use ElasticsearchFetch which has
+a search_surrounding. This returns a list of lists, where each list contains
+the queried loglines and the lines before and after as requested by the parameters 
+num_before and num_after.
 
 ## Installation
 
@@ -24,7 +46,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch_follow import ElasticsearchFollow, Follower
 
 es = Elasticsearch()
-es_follow = elasticsearch_follow.ElasticsearchFollow(elasticsearch=es)
+es_follow = ElasticsearchFollow(elasticsearch=es)
 
 # The Follower is used to get a generator which yields new 
 # elements until it runs out. time_delta give the number of

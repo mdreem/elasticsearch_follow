@@ -76,6 +76,17 @@ class ElasticsearchFetch:
             return []
 
     def search_surrounding(self, index, query_string=None, num_before=0, num_after=0):
+        """
+        Fetches the line found by query_string as well as lines before and after as given
+        by num_before and num_after.
+
+        :param index: The index to search in. May contain wildcards.
+        :param query_string: The query used to fetch data from Elasticsearch.
+        :param num_before: Number of lines to fetch before a hit.
+        :param num_after: Number of lines to fetch after a hit.
+        :return: Returns a list of lists, where the sublists contain the found and
+        the surrounding documents.
+        """
         search_result = self.search(index, query_string)
 
         for hit in self.get_hits(search_result):
@@ -88,6 +99,12 @@ class ElasticsearchFetch:
             yield list(reversed(self._extract_source(lines_before))) + [line] + self._extract_source(lines_after)
 
     def get_hits(self, search_result):
+        """
+        Fetches all hits from a search_result. Iterates through all pages via the scroll_id.
+
+        :param search_result: The result of an ElasticSearch.search-request.
+        :return: Yields the resulting documents one by one.
+        """
         res = search_result
         scroll_id = res['_scroll_id']
         hits = res['hits']['hits']
