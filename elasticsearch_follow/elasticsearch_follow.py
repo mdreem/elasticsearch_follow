@@ -1,24 +1,9 @@
-import heapq
 from copy import deepcopy
-from functools import total_ordering
 
-import pytz
 from dateutil.parser import parse
 
 from .elasticsearch_fetch import ElasticsearchFetch
-
-
-@total_ordering
-class Entry:
-    def __init__(self, timestamp, entry_id):
-        self.timestamp = timestamp
-        self.entry_id = entry_id
-
-    def __eq__(self, other):
-        return (self.timestamp, self.entry_id) == (other.timestamp, other.entry_id)
-
-    def __lt__(self, other):
-        return self.timestamp < other.timestamp
+from .entry_tracker import EntryTracker
 
 
 class ElasticsearchFollow:
@@ -33,8 +18,7 @@ class ElasticsearchFollow:
         self.es_fetch = ElasticsearchFetch(elasticsearch=elasticsearch, timestamp_field=timestamp_field)
         self.timestamp_field = timestamp_field
 
-        self.added_entries = set()
-        self.entries_by_timestamp = []
+        self.entry_tracker = EntryTracker()
 
         self.base_query = {
             "sort": [
@@ -87,28 +71,17 @@ class ElasticsearchFollow:
 
         for entry in entries:
             entry_id = entry['_id']
-            if entry_id not in self.added_entries:
+            if entry_id not in self.entry_tracker:
                 new_line = entry['_source']
-                self._update_entries_by_timestamp(entry_id, new_line)
 
-                self.added_entries.add(entry_id)
+                entry_timestamp = parse(new_line[self.timestamp_field])
+
+                self.entry_tracker.add(entry_id, entry_timestamp)
                 yield new_line
-
-    def _update_entries_by_timestamp(self, entry_id, new_line):
-        entry_timestamp = parse(new_line[self.timestamp_field])
-        if not entry_timestamp.tzinfo:
-            entry_timestamp = pytz.utc.localize(entry_timestamp)
-        heapq.heappush(self.entries_by_timestamp, Entry(timestamp=entry_timestamp, entry_id=entry_id))
 
     def prune_before(self, timestamp):
         """
         Removes All entries before  ``timestamp`` from the internal buffer.
         :param timestamp: All entries in the internal before this timestamp will be removed.
         """
-        while len(self.entries_by_timestamp) > 0:
-            oldest_entry = heapq.heappop(self.entries_by_timestamp)
-            if oldest_entry.timestamp <= timestamp:
-                self.added_entries.remove(oldest_entry.entry_id)
-            else:
-                heapq.heappush(self.entries_by_timestamp, oldest_entry)
-                return
+        self.entry_tracker.prune_before(timestamp)

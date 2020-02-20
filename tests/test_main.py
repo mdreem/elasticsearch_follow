@@ -52,8 +52,8 @@ class TestMain:
         timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=10, tzinfo=tz.UTC)
         es_follow.prune_before(timestamp)
 
-        assert len(es_follow.added_entries) == 0
-        assert len(es_follow.entries_by_timestamp) == 0
+        assert len(es_follow.entry_tracker.added_entries) == 0
+        assert len(es_follow.entry_tracker.entries_by_timestamp) == 0
 
     def test_prune_existing_remains(self):
         es = Mock()
@@ -69,11 +69,11 @@ class TestMain:
         timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=0, tzinfo=tz.UTC)
         es_follow.prune_before(timestamp)
 
-        assert len(es_follow.added_entries) == 1
-        assert entry_id in es_follow.added_entries
+        assert len(es_follow.entry_tracker.added_entries) == 1
+        assert entry_id in es_follow.entry_tracker.added_entries
 
-        assert len(es_follow.entries_by_timestamp) == 1
-        remaining_entry = es_follow.entries_by_timestamp[0]
+        assert len(es_follow.entry_tracker.entries_by_timestamp) == 1
+        remaining_entry = es_follow.entry_tracker.entries_by_timestamp[0]
         assert remaining_entry.entry_id == entry_id
         assert remaining_entry.timestamp == entry_timestamp
 
@@ -84,8 +84,8 @@ class TestMain:
         timestamp = datetime(year=2019, month=1, day=1, hour=10, minute=10, tzinfo=tz.UTC)
         es_follow.prune_before(timestamp)
 
-        assert len(es_follow.added_entries) == 0
-        assert len(es_follow.entries_by_timestamp) == 0
+        assert len(es_follow.entry_tracker.added_entries) == 0
+        assert len(es_follow.entry_tracker.entries_by_timestamp) == 0
 
     def test_set_missing_timestamp_to_entry(self):
         es = Mock()
