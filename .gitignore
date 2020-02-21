@@ -105,3 +105,4 @@ venv.bak/
 
 test-reports/
 .idea/
+/elasticsearch_follow/_version.py
