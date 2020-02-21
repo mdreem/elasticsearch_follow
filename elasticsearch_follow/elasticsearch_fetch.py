@@ -57,6 +57,9 @@ class ElasticsearchFetch:
         :return: Returns the result of the Elasticsearch query.
         """
 
+        if number <= 0:
+            return []
+
         if after:
             query = {
                 'search_after': [timestamp, doc_id],
@@ -80,6 +83,8 @@ class ElasticsearchFetch:
 
     @staticmethod
     def _extract_source(line):
+        if not line:
+            return []
         if line['hits']['hits']:
             return list(map(lambda x: x['_source'], line['hits']['hits']))
         else:
