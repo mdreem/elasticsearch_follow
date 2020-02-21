@@ -208,3 +208,69 @@ class TestElasticsearchFetch:
         self.assert_message_in_line(results[4], 0, 'testMessage3')
         self.assert_message_in_line(results[4], 1, 'testMessage4')
         self.assert_message_in_line(results[4], 2, 'testMessage5')
+
+    def test_search_with_time_upper_and_lower_bound(self):
+        self.delete_index('test_index')
+        self.insert_line(message='testMessage1', timestamp=TIMESTAMP_ONE)
+        self.insert_line(message='testMessage2', timestamp=TIMESTAMP_TWO)
+        self.insert_line(message='testMessage3', timestamp=TIMESTAMP_THREE)
+        self.insert_line(message='testMessage4', timestamp=TIMESTAMP_FOUR)
+        self.insert_line(message='testMessage5', timestamp=TIMESTAMP_FIVE)
+
+        es = Elasticsearch(["http://localhost:9200"])
+        es_fetch = elasticsearch_follow.ElasticsearchFetch(es)
+
+        results = list(es_fetch.search_surrounding(index='test_index', from_time=TIMESTAMP_TWO, to_time=TIMESTAMP_FOUR))
+
+        assert len(results) == 3
+
+        assert len(results[0]) == 1
+        assert results[0][0]['message'] == 'testMessage2'
+
+        assert len(results[1]) == 1
+        assert results[1][0]['message'] == 'testMessage3'
+
+        assert len(results[2]) == 1
+        assert results[2][0]['message'] == 'testMessage4'
+
+    def test_search_with_time_lower_bound(self):
+        self.delete_index('test_index')
+        self.insert_line(message='testMessage1', timestamp=TIMESTAMP_ONE)
+        self.insert_line(message='testMessage2', timestamp=TIMESTAMP_TWO)
+        self.insert_line(message='testMessage3', timestamp=TIMESTAMP_THREE)
+        self.insert_line(message='testMessage4', timestamp=TIMESTAMP_FOUR)
+        self.insert_line(message='testMessage5', timestamp=TIMESTAMP_FIVE)
+
+        es = Elasticsearch(["http://localhost:9200"])
+        es_fetch = elasticsearch_follow.ElasticsearchFetch(es)
+
+        results = list(es_fetch.search_surrounding(index='test_index', from_time=TIMESTAMP_FOUR))
+
+        assert len(results) == 2
+
+        assert len(results[0]) == 1
+        assert results[0][0]['message'] == 'testMessage4'
+
+        assert len(results[1]) == 1
+        assert results[1][0]['message'] == 'testMessage5'
+
+    def test_search_with_time_upper_bound(self):
+        self.delete_index('test_index')
+        self.insert_line(message='testMessage1', timestamp=TIMESTAMP_ONE)
+        self.insert_line(message='testMessage2', timestamp=TIMESTAMP_TWO)
+        self.insert_line(message='testMessage3', timestamp=TIMESTAMP_THREE)
+        self.insert_line(message='testMessage4', timestamp=TIMESTAMP_FOUR)
+        self.insert_line(message='testMessage5', timestamp=TIMESTAMP_FIVE)
+
+        es = Elasticsearch(["http://localhost:9200"])
+        es_fetch = elasticsearch_follow.ElasticsearchFetch(es)
+
+        results = list(es_fetch.search_surrounding(index='test_index', to_time=TIMESTAMP_TWO))
+
+        assert len(results) == 2
+
+        assert len(results[0]) == 1
+        assert results[0][0]['message'] == 'testMessage1'
+
+        assert len(results[1]) == 1
+        assert results[1][0]['message'] == 'testMessage2'
