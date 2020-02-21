@@ -1,11 +1,13 @@
 import setuptools
 
+from elasticsearch_follow import __version__
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="elasticsearch_follow",
-    version="0.2.0",
+    version=__version__,
     author="Marc Schiereck",
     author_email="mdreem@fastmail.fm",
     description="An Elasticsearch tail",
