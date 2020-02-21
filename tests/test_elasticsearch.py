@@ -4,42 +4,10 @@ from dateutil import tz
 from elasticsearch import Elasticsearch
 
 import elasticsearch_follow
+from .elasticsearch_integration_base import TestElasticsearchIntegrationBase
 
 
-class TestElasticsearch:
-    def find_hit(self, hits, message):
-        return next((hit for hit in hits if hit['_source']['message'] == message), None)
-
-    def insert_line(self, message, timestamp):
-        es = Elasticsearch(["http://localhost:9200"])
-        es.info()
-
-        doc = {
-            'message': message,
-            '@timestamp': timestamp,
-        }
-
-        res = es.index(index='test_index', body=doc)
-        print('Inserting line: {}'.format(res))
-
-        query = {
-            'size': 10000,
-            'query': {
-                'match_all': {}
-            }
-        }
-        while True:
-            res = es.search(index='test_index', body=query)
-            hits = res['hits']['hits']
-            if hits and self.find_hit(hits, message):
-                print('Found ({}): {}'.format(message, hits))
-                break
-        print('Check: {}'.format(res['hits']['hits']))
-
-    def delete_index(self, name):
-        es = Elasticsearch(["http://localhost:9200"])
-        es.indices.delete(index=name, ignore=[400, 404])
-
+class TestElasticsearch(TestElasticsearchIntegrationBase):
     def test_query_line(self):
         self.delete_index('test_index')
         self.insert_line(message='testMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=1, tzinfo=tz.UTC))

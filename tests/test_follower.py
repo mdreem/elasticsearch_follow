@@ -10,7 +10,8 @@ REFERENCE_TIME = datetime(year=2019, month=1, day=1, hour=10, minute=1, tzinfo=t
 
 
 class TestFollower:
-    def setup(self):
+    @staticmethod
+    def setup():
         datetime_mock = Mock(wraps=datetime)
         now = datetime(year=2019, month=1, day=1, hour=10, minute=0)
         datetime_mock.utcnow = Mock(return_value=now)
