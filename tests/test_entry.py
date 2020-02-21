@@ -1,3 +1,4 @@
+import unittest
 from datetime import datetime
 
 from dateutil import tz
@@ -9,7 +10,7 @@ REFERENCE_TIME = datetime(year=2019, month=1, day=1, hour=10, minute=2, tzinfo=t
 AFTER_REFERENCE_TIME = datetime(year=2019, month=1, day=1, hour=10, minute=3, tzinfo=tz.UTC)
 
 
-class TestEntryTracker:
+class TestEntryTracker(unittest.TestCase):
     def test_entry_equality(self):
         entry_one = elasticsearch_follow.entry_tracker.Entry(REFERENCE_TIME, 'id-1')
         another_entry_one = elasticsearch_follow.entry_tracker.Entry(REFERENCE_TIME, 'id-1')

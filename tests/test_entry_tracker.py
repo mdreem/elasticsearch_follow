@@ -1,4 +1,5 @@
 import heapq
+import unittest
 from datetime import datetime
 
 import pytz
@@ -11,7 +12,7 @@ REFERENCE_TIME = datetime(year=2019, month=1, day=1, hour=10, minute=2, tzinfo=t
 AFTER_REFERENCE_TIME = datetime(year=2019, month=1, day=1, hour=10, minute=3, tzinfo=tz.UTC)
 
 
-class TestEntryTracker:
+class TestEntryTracker(unittest.TestCase):
     def test_entry_tracker_pruning(self):
         entry_tracker = elasticsearch_follow.entry_tracker.EntryTracker()
 

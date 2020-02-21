@@ -1,9 +1,10 @@
+import unittest
 from unittest.mock import Mock
 
 import elasticsearch_follow
 
 
-class TestDefaultProcessor:
+class TestDefaultProcessor(unittest.TestCase):
     def test_default_processor(self):
         processor = elasticsearch_follow.DefaultProcessor()
         es_follow = Mock()

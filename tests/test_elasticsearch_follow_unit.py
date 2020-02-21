@@ -1,3 +1,4 @@
+import unittest
 from datetime import datetime
 from unittest.mock import Mock
 
@@ -7,7 +8,7 @@ import elasticsearch_follow
 from tests import generate_basic_query_response, generate_query_response, generate_hit_entry
 
 
-class TestElasticsearchFollowUnit:
+class TestElasticsearchFollowUnit(unittest.TestCase):
     def test_fetch_one_line(self):
         es = Mock()
         es_follow = elasticsearch_follow.ElasticsearchFollow(es)

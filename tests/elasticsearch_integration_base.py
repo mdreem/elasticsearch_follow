@@ -1,7 +1,9 @@
+import unittest
+
 from elasticsearch import Elasticsearch
 
 
-class TestElasticsearchIntegrationBase:
+class TestElasticsearchIntegrationBase(unittest.TestCase):
     @staticmethod
     def find_hit(hits, message):
         return next((hit for hit in hits if hit['_source']['message'] == message), None)

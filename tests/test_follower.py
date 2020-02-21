@@ -1,3 +1,4 @@
+import unittest
 from datetime import datetime
 from unittest.mock import Mock, patch
 
@@ -9,7 +10,7 @@ from tests import generate_query_response, generate_basic_query_response
 REFERENCE_TIME = datetime(year=2019, month=1, day=1, hour=10, minute=1, tzinfo=tz.UTC)
 
 
-class TestFollower:
+class TestFollower(unittest.TestCase):
     @staticmethod
     def setup():
         datetime_mock = Mock(wraps=datetime)
