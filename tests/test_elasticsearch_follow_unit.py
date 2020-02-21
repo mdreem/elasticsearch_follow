@@ -7,7 +7,7 @@ import elasticsearch_follow
 from tests import generate_basic_query_response, generate_query_response, generate_hit_entry
 
 
-class TestMain:
+class TestElasticsearchFollowUnit:
     def test_fetch_one_line(self):
         es = Mock()
         es_follow = elasticsearch_follow.ElasticsearchFollow(es)

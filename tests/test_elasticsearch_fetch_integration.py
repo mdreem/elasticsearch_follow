@@ -13,7 +13,7 @@ TIMESTAMP_FOUR = datetime(year=2019, month=1, day=1, hour=10, minute=4, tzinfo=t
 TIMESTAMP_FIVE = datetime(year=2019, month=1, day=1, hour=10, minute=5, tzinfo=tz.UTC)
 
 
-class TestElasticsearchFetch(TestElasticsearchIntegrationBase):
+class TestElasticsearchFetchIntegration(TestElasticsearchIntegrationBase):
     @staticmethod
     def assert_source_with_message_in_line(lines, line_number, message):
         assert '_source' in lines[line_number]

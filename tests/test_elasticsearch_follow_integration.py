@@ -7,7 +7,7 @@ import elasticsearch_follow
 from .elasticsearch_integration_base import TestElasticsearchIntegrationBase
 
 
-class TestElasticsearch(TestElasticsearchIntegrationBase):
+class TestElasticsearchFollowIntegration(TestElasticsearchIntegrationBase):
     def test_query_line(self):
         self.delete_index('test_index')
         self.insert_line(message='testMessage', timestamp=datetime(year=2019, month=1, day=1, hour=10, minute=1, tzinfo=tz.UTC))
