@@ -16,4 +16,4 @@ class TestDefaultProcessor(unittest.TestCase):
 
         generator = follower.generator()
 
-        assert next(generator) == '2019-01-01T10:01:00 line1'
+        self.assertEqual(next(generator), '2019-01-01T10:01:00 line1')

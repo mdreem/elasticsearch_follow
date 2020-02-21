@@ -32,11 +32,11 @@ class TestFollower(unittest.TestCase):
         es.search.return_value = generate_basic_query_response('id_2', 'line2', REFERENCE_TIME)
         res_second = list(follower.generator())
 
-        assert len(res_first) == 1
-        assert res_first[0]['msg'] == 'line1'
+        self.assertEqual(len(res_first), 1)
+        self.assertEqual(res_first[0]['msg'], 'line1')
 
-        assert len(res_second) == 1
-        assert res_second[0]['msg'] == 'line2'
+        self.assertEqual(len(res_second), 1)
+        self.assertEqual(res_second[0]['msg'], 'line2')
 
     def test_follower_with_processor_returns_added_entry(self):
         class TestProcessor(elasticsearch_follow.DefaultProcessor):
@@ -58,6 +58,6 @@ class TestFollower(unittest.TestCase):
 
         result = list(follower.generator())
 
-        assert len(result) == 2
-        assert result[0] == 'PROCESSED_line_1'
-        assert result[1] == 'PROCESSED_line_3'
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0], 'PROCESSED_line_1')
+        self.assertEqual(result[1], 'PROCESSED_line_3')

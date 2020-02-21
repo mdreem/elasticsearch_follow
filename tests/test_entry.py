@@ -15,27 +15,27 @@ class TestEntryTracker(unittest.TestCase):
         entry_one = elasticsearch_follow.entry_tracker.Entry(REFERENCE_TIME, 'id-1')
         another_entry_one = elasticsearch_follow.entry_tracker.Entry(REFERENCE_TIME, 'id-1')
 
-        assert entry_one == another_entry_one
+        self.assertEqual(entry_one, another_entry_one)
 
     def test_entry_unequal_by_timestamp(self):
         entry_one = elasticsearch_follow.entry_tracker.Entry(BEFORE_REFERENCE_TIME, 'id-1')
         another_entry_one = elasticsearch_follow.entry_tracker.Entry(AFTER_REFERENCE_TIME, 'id-1')
 
-        assert entry_one != another_entry_one
+        self.assertNotEqual(entry_one, another_entry_one)
 
     def test_entry_unequal_by_id(self):
         entry_one = elasticsearch_follow.entry_tracker.Entry(REFERENCE_TIME, 'id-1')
         another_entry_one = elasticsearch_follow.entry_tracker.Entry(REFERENCE_TIME, 'id-2')
 
-        assert entry_one != another_entry_one
+        self.assertNotEqual(entry_one, another_entry_one)
 
     def test_sorting_only_by_timestamp(self):
         earlier_entry_one = elasticsearch_follow.entry_tracker.Entry(BEFORE_REFERENCE_TIME, 'B')
         later_entry_one = elasticsearch_follow.entry_tracker.Entry(AFTER_REFERENCE_TIME, 'A')
 
-        assert earlier_entry_one < later_entry_one
+        self.assertLess(earlier_entry_one, later_entry_one)
 
         earlier_entry_two = elasticsearch_follow.entry_tracker.Entry(BEFORE_REFERENCE_TIME, 'A')
         later_entry_two = elasticsearch_follow.entry_tracker.Entry(AFTER_REFERENCE_TIME, 'B')
 
-        assert earlier_entry_two < later_entry_two
+        self.assertLess(earlier_entry_two, later_entry_two)

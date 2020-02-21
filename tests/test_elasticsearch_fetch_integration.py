@@ -14,21 +14,18 @@ TIMESTAMP_FIVE = datetime(year=2019, month=1, day=1, hour=10, minute=5, tzinfo=t
 
 
 class TestElasticsearchFetchIntegration(TestElasticsearchIntegrationBase):
-    @staticmethod
-    def assert_source_with_message_in_line(lines, line_number, message):
-        assert '_source' in lines[line_number]
-        assert 'message' in lines[line_number]['_source']
-        assert lines[line_number]['_source']['message'] == message
+    def assert_source_with_message_in_line(self, lines, line_number, message):
+        self.assertIn('_source', lines[line_number])
+        self.assertIn('message', lines[line_number]['_source'])
+        self.assertEqual(lines[line_number]['_source']['message'], message)
 
-    @staticmethod
-    def assert_message_in_line(lines, line_number, message):
-        assert 'message' in lines[line_number]
-        assert lines[line_number]['message'] == message
+    def assert_message_in_line(self, lines, line_number, message):
+        self.assertIn('message', lines[line_number])
+        self.assertEqual(lines[line_number]['message'], message)
 
-    @staticmethod
-    def assert_sort_field_expected(lines, line_number, timestamp, doc_id):
-        assert 'sort' in lines[line_number]
-        assert lines[line_number]['sort'] == [timestamp.timestamp() * 1000.0, doc_id]
+    def assert_sort_field_expected(self, lines, line_number, timestamp, doc_id):
+        self.assertIn('sort', lines[line_number])
+        self.assertEqual(lines[line_number]['sort'], [timestamp.timestamp() * 1000.0, doc_id])
 
     def test_search_lines_in_order(self):
         self.delete_index('test_index')
@@ -43,7 +40,7 @@ class TestElasticsearchFetchIntegration(TestElasticsearchIntegrationBase):
         new_lines = new_lines['hits']['hits']
         print('Received: {}'.format(new_lines))
 
-        assert len(new_lines) == 3
+        self.assertEqual(len(new_lines), 3)
         self.assert_source_with_message_in_line(new_lines, 0, 'testMessage1')
         self.assert_source_with_message_in_line(new_lines, 1, 'testMessage2')
         self.assert_source_with_message_in_line(new_lines, 2, 'testMessage3')
@@ -65,7 +62,7 @@ class TestElasticsearchFetchIntegration(TestElasticsearchIntegrationBase):
         new_lines = new_lines['hits']['hits']
         print('Received: {}'.format(new_lines))
 
-        assert len(new_lines) == 3
+        self.assertEqual(len(new_lines), 3)
         self.assert_source_with_message_in_line(new_lines, 0, 'testMessage1')
         self.assert_source_with_message_in_line(new_lines, 1, 'testMessage3')
         self.assert_source_with_message_in_line(new_lines, 2, 'testMessage2')
@@ -87,7 +84,7 @@ class TestElasticsearchFetchIntegration(TestElasticsearchIntegrationBase):
         new_lines = new_lines['hits']['hits']
         print('Received: {}'.format(new_lines))
 
-        assert len(new_lines) == 1
+        self.assertEqual(len(new_lines), 1)
         self.assert_source_with_message_in_line(new_lines, 0, 'testMessage2')
         self.assert_sort_field_expected(new_lines, 0, TIMESTAMP_TWO, 1)
 
@@ -116,11 +113,11 @@ class TestElasticsearchFetchIntegration(TestElasticsearchIntegrationBase):
         print('results_before: {}'.format(results_before))
         print('results_after: {}'.format(results_after))
 
-        assert len(results_before) == 2
+        self.assertEqual(len(results_before), 2)
         self.assert_source_with_message_in_line(results_before, 0, 'testMessage2')
         self.assert_source_with_message_in_line(results_before, 1, 'testMessage1')
 
-        assert len(results_after) == 2
+        self.assertEqual(len(results_after), 2)
         self.assert_source_with_message_in_line(results_after, 0, 'testMessage4')
         self.assert_source_with_message_in_line(results_after, 1, 'testMessage5')
 
@@ -149,33 +146,33 @@ class TestElasticsearchFetchIntegration(TestElasticsearchIntegrationBase):
 
         print('results: {}'.format(results))
 
-        assert len(results) == 5
+        self.assertEqual(len(results), 5)
 
-        assert len(results[0]) == 3
+        self.assertEqual(len(results[0]), 3)
         self.assert_message_in_line(results[0], 0, 'testMessage1')
         self.assert_message_in_line(results[0], 1, 'testMessage2')
         self.assert_message_in_line(results[0], 2, 'testMessage3')
 
-        assert len(results[1]) == 4
+        self.assertEqual(len(results[1]), 4)
         self.assert_message_in_line(results[1], 0, 'testMessage1')
         self.assert_message_in_line(results[1], 1, 'testMessage2')
         self.assert_message_in_line(results[1], 2, 'testMessage3')
         self.assert_message_in_line(results[1], 3, 'testMessage4')
 
-        assert len(results[2]) == 5
+        self.assertEqual(len(results[2]), 5)
         self.assert_message_in_line(results[2], 0, 'testMessage1')
         self.assert_message_in_line(results[2], 1, 'testMessage2')
         self.assert_message_in_line(results[2], 2, 'testMessage3')
         self.assert_message_in_line(results[2], 3, 'testMessage4')
         self.assert_message_in_line(results[2], 4, 'testMessage5')
 
-        assert len(results[3]) == 4
+        self.assertEqual(len(results[3]), 4)
         self.assert_message_in_line(results[3], 0, 'testMessage2')
         self.assert_message_in_line(results[3], 1, 'testMessage3')
         self.assert_message_in_line(results[3], 2, 'testMessage4')
         self.assert_message_in_line(results[3], 3, 'testMessage5')
 
-        assert len(results[4]) == 3
+        self.assertEqual(len(results[4]), 3)
         self.assert_message_in_line(results[4], 0, 'testMessage3')
         self.assert_message_in_line(results[4], 1, 'testMessage4')
         self.assert_message_in_line(results[4], 2, 'testMessage5')
@@ -193,16 +190,16 @@ class TestElasticsearchFetchIntegration(TestElasticsearchIntegrationBase):
 
         results = list(es_fetch.search_surrounding(index='test_index', from_time=TIMESTAMP_TWO, to_time=TIMESTAMP_FOUR))
 
-        assert len(results) == 3
+        self.assertEqual(len(results), 3)
 
-        assert len(results[0]) == 1
-        assert results[0][0]['message'] == 'testMessage2'
+        self.assertEqual(len(results[0]), 1)
+        self.assertEqual(results[0][0]['message'], 'testMessage2')
 
-        assert len(results[1]) == 1
-        assert results[1][0]['message'] == 'testMessage3'
+        self.assertEqual(len(results[1]), 1)
+        self.assertEqual(results[1][0]['message'], 'testMessage3')
 
-        assert len(results[2]) == 1
-        assert results[2][0]['message'] == 'testMessage4'
+        self.assertEqual(len(results[2]), 1)
+        self.assertEqual(results[2][0]['message'], 'testMessage4')
 
     def test_search_with_time_lower_bound(self):
         self.delete_index('test_index')
@@ -217,13 +214,13 @@ class TestElasticsearchFetchIntegration(TestElasticsearchIntegrationBase):
 
         results = list(es_fetch.search_surrounding(index='test_index', from_time=TIMESTAMP_FOUR))
 
-        assert len(results) == 2
+        self.assertEqual(len(results), 2)
 
-        assert len(results[0]) == 1
-        assert results[0][0]['message'] == 'testMessage4'
+        self.assertEqual(len(results[0]), 1)
+        self.assertEqual(results[0][0]['message'], 'testMessage4')
 
-        assert len(results[1]) == 1
-        assert results[1][0]['message'] == 'testMessage5'
+        self.assertEqual(len(results[1]), 1)
+        self.assertEqual(results[1][0]['message'], 'testMessage5')
 
     def test_search_with_time_upper_bound(self):
         self.delete_index('test_index')
@@ -238,10 +235,10 @@ class TestElasticsearchFetchIntegration(TestElasticsearchIntegrationBase):
 
         results = list(es_fetch.search_surrounding(index='test_index', to_time=TIMESTAMP_TWO))
 
-        assert len(results) == 2
+        self.assertEqual(len(results), 2)
 
-        assert len(results[0]) == 1
-        assert results[0][0]['message'] == 'testMessage1'
+        self.assertEqual(len(results[0]), 1)
+        self.assertEqual(results[0][0]['message'], 'testMessage1')
 
-        assert len(results[1]) == 1
-        assert results[1][0]['message'] == 'testMessage2'
+        self.assertEqual(len(results[1]), 1)
+        self.assertEqual(results[1][0]['message'], 'testMessage2')

@@ -18,9 +18,9 @@ class TestElasticsearchFollowIntegration(TestElasticsearchIntegrationBase):
         new_lines = list(es_follow.get_new_lines('test_index', datetime(year=2019, month=1, day=1, hour=10, minute=0, tzinfo=tz.UTC)))
         print('Received: {}'.format(new_lines))
 
-        assert len(new_lines) == 1
-        assert 'message' in new_lines[0]
-        assert new_lines[0]['message'] == 'testMessage'
+        self.assertEqual(len(new_lines), 1)
+        self.assertIn('message', new_lines[0])
+        self.assertEqual(new_lines[0]['message'], 'testMessage')
 
     def test_query_lines_returned_ordered_by_timestamp(self):
         self.delete_index('test_index')
@@ -34,15 +34,16 @@ class TestElasticsearchFollowIntegration(TestElasticsearchIntegrationBase):
         new_lines = list(es_follow.get_new_lines('test_index', datetime(year=2019, month=1, day=1, hour=10, minute=0, tzinfo=tz.UTC)))
         print('Received: {}'.format(new_lines))
 
-        assert len(new_lines) == 3
-        assert 'message' in new_lines[0]
-        assert new_lines[0]['message'] == 'firstMessage'
+        self.assertEqual(len(new_lines), 3)
 
-        assert 'message' in new_lines[1]
-        assert new_lines[1]['message'] == 'secondMessage'
+        self.assertIn('message', new_lines[0])
+        self.assertEqual(new_lines[0]['message'], 'firstMessage')
 
-        assert 'message' in new_lines[2]
-        assert new_lines[2]['message'] == 'thirdMessage'
+        self.assertIn('message', new_lines[1])
+        self.assertEqual(new_lines[1]['message'], 'secondMessage')
+
+        self.assertIn('message', new_lines[2])
+        self.assertEqual(new_lines[2]['message'], 'thirdMessage')
 
     def test_query_string_returns_correct_results(self):
         self.delete_index('test_index')
@@ -56,6 +57,6 @@ class TestElasticsearchFollowIntegration(TestElasticsearchIntegrationBase):
         new_lines = list(es_follow.get_new_lines('test_index', datetime(year=2019, month=1, day=1, hour=10, minute=0, tzinfo=tz.UTC)))
         print('Received: {}'.format(new_lines))
 
-        assert len(new_lines) == 1
-        assert 'message' in new_lines[0]
-        assert new_lines[0]['message'] == 'firstMessage'
+        self.assertEqual(len(new_lines), 1)
+        self.assertIn('message', new_lines[0])
+        self.assertEqual(new_lines[0]['message'], 'firstMessage')
