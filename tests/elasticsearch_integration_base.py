@@ -8,7 +8,7 @@ class TestElasticsearchIntegrationBase(unittest.TestCase):
     def find_hit(hits, message):
         return next((hit for hit in hits if hit['_source']['message'] == message), None)
 
-    def insert_line(self, message, timestamp):
+    def insert_line(self, message, timestamp, index='test_index'):
         es = Elasticsearch(["http://localhost:9200"])
         es.info()
 
@@ -17,7 +17,7 @@ class TestElasticsearchIntegrationBase(unittest.TestCase):
             '@timestamp': timestamp,
         }
 
-        res = es.index(index='test_index', body=doc)
+        res = es.index(index=index, body=doc)
         print('Inserting line: {}'.format(res))
 
         query = {
@@ -27,7 +27,7 @@ class TestElasticsearchIntegrationBase(unittest.TestCase):
             }
         }
         while True:
-            res = es.search(index='test_index', body=query)
+            res = es.search(index=index, body=query)
             hits = res['hits']['hits']
             if hits and self.find_hit(hits, message):
                 print('Found ({}): {}'.format(message, hits))
@@ -35,6 +35,6 @@ class TestElasticsearchIntegrationBase(unittest.TestCase):
         print('Check: {}'.format(res['hits']['hits']))
 
     @staticmethod
-    def delete_index(name):
+    def delete_index(index):
         es = Elasticsearch(["http://localhost:9200"])
-        es.indices.delete(index=name, ignore=[400, 404])
+        es.indices.delete(index=index, ignore=[400, 404])
