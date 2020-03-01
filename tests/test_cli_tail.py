@@ -137,3 +137,51 @@ class TestFetchCli(TestElasticsearchIntegrationBase):
         self.assertIn('Connecting to "localhost:9200" with "someUser"', results['result'])
         self.assertIn('findMe', results['result'])
         self.assertNotIn('doNotFindMe', results['result'])
+
+    @patch('follower.datetime.datetime')
+    def test_fetch_with_number_of_lines(self, mock_dt):
+        mock_dt.utcnow.return_value = TIMESTAMP_ONE_HALF
+        mock_dt.now.return_value = TIMESTAMP_ONE_HALF
+        self.insert_line(message='line1', timestamp=TIMESTAMP_ONE)
+        self.insert_line(message='line2', timestamp=TIMESTAMP_ONE)
+        self.insert_line(message='line3', timestamp=TIMESTAMP_ONE)
+
+        results = self.run_with_args_and_fetch_results(args=['-v',
+                                                             '--connect', ES_HOST,
+                                                             '--username', USERNAME,
+                                                             '--password', PASSWORD,
+                                                             'tail',
+                                                             '--number-of-lines', '1'])
+
+        self.assertIn('Connecting to "localhost:9200" with "someUser"', results['result'])
+        self.assertNotIn('line1', results['result'])
+        self.assertNotIn('line2', results['result'])
+        self.assertIn('line3', results['result'])
+
+    @patch('follower.datetime.datetime')
+    def test_fetch_with_timedelta(self, mock_dt):
+        mock_dt.utcnow.return_value = TIMESTAMP_ONE_HALF
+        mock_dt.now.return_value = TIMESTAMP_ONE_HALF
+        self.insert_line(message='line1', timestamp=TIMESTAMP_ONE)
+        self.insert_line(message='line2', timestamp=TIMESTAMP_ONE_HALF)
+
+        results_default_delta = self.run_with_args_and_fetch_results(args=['-v',
+                                                                           '--connect', ES_HOST,
+                                                                           '--username', USERNAME,
+                                                                           '--password', PASSWORD,
+                                                                           'tail'])
+
+        results_different_delta = self.run_with_args_and_fetch_results(args=['-v',
+                                                                             '--connect', ES_HOST,
+                                                                             '--username', USERNAME,
+                                                                             '--password', PASSWORD,
+                                                                             'tail',
+                                                                             '--timedelta', '30'])
+
+        self.assertIn('Connecting to "localhost:9200" with "someUser"', results_default_delta['result'])
+        self.assertIn('line1', results_default_delta['result'])
+        self.assertIn('line2', results_default_delta['result'])
+
+        self.assertIn('Connecting to "localhost:9200" with "someUser"', results_different_delta['result'])
+        self.assertNotIn('line1', results_different_delta['result'])
+        self.assertIn('line2', results_different_delta['result'])
