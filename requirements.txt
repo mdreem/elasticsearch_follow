@@ -3,3 +3,4 @@ elasticsearch
 pytz
 pytest-runner
 coveralls
+click
