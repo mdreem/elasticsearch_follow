@@ -75,10 +75,10 @@ class TestFetchCli(TestElasticsearchIntegrationBase):
                                          '--username', USERNAME,
                                          '--password', PASSWORD,
                                          'fetch',
-                                         '--format-string', '{@timestamp} -->{message}<--'])
+                                         '--format-string', '{@timestamp} -->{message}<--]{unknown}[--'])
 
         self.assertIn('Connecting to "localhost:9200" with "someUser"', result.output)
-        self.assertIn('-->formatMe<--', result.output)
+        self.assertIn('-->formatMe<--][--', result.output)
         self.assertEqual(0, result.exit_code)
 
     def test_fetch_with_query(self):

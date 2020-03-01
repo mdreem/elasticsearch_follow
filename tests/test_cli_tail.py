@@ -115,10 +115,10 @@ class TestFetchCli(TestElasticsearchIntegrationBase):
                                                              '--username', USERNAME,
                                                              '--password', PASSWORD,
                                                              'tail',
-                                                             '--format-string', '{@timestamp} -->{message}<--'])
+                                                             '--format-string', '{@timestamp} -->{message}<--]{unknown}[--'])
 
         self.assertIn('Connecting to "localhost:9200" with "someUser"', results['result'])
-        self.assertIn('-->formatMe<--', results['result'])
+        self.assertIn('-->formatMe<--][--', results['result'])
 
     @patch('elasticsearch_follow.follower.datetime.datetime')
     def test_fetch_with_query(self, mock_dt):
