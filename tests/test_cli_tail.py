@@ -42,6 +42,23 @@ class TestFetchCli(TestElasticsearchIntegrationBase):
                 results[key] = value
         return results
 
+    def run_with_args_and_fetch_results(self, args):
+        result_queue = Queue()
+
+        def run_in_background():
+            Timer(TIMEOUT, lambda: os.kill(os.getpid(), SIGINT)).start()
+
+            runner = CliRunner()
+            result = runner.invoke(cli.cli, args)
+            result_queue.put(('exit_code', result.exit_code))
+            result_queue.put(('result', result.output))
+            result_queue.put(('exception', result.exception))
+
+            print('Exception: {}'.format(result.exception))
+
+        results = self.fetch_data_from_process(result_queue, run_in_background)
+        return results
+
     @patch('follower.datetime.datetime')
     def test_basic_fetch(self, mock_dt):
         mock_dt.utcnow.return_value = TIMESTAMP_ONE_HALF
@@ -49,22 +66,11 @@ class TestFetchCli(TestElasticsearchIntegrationBase):
 
         self.insert_line(message='testMessage', timestamp=TIMESTAMP_ONE)
 
-        result_queue = Queue()
-
-        def run_in_background():
-            Timer(TIMEOUT, lambda: os.kill(os.getpid(), SIGINT)).start()
-
-            runner = CliRunner()
-            result = runner.invoke(cli.cli, ['-v',
-                                             '--connect', ES_HOST,
-                                             '--username', USERNAME,
-                                             '--password', PASSWORD,
-                                             'tail'])
-            result_queue.put(('exit_code', result.exit_code))
-            result_queue.put(('result', result.output))
-            result_queue.put(('exception', result.exception))
-
-        results = self.fetch_data_from_process(result_queue, run_in_background)
+        results = self.run_with_args_and_fetch_results(args=['-v',
+                                                             '--connect', ES_HOST,
+                                                             '--username', USERNAME,
+                                                             '--password', PASSWORD,
+                                                             'tail'])
 
         self.assertIn('Connecting to "localhost:9200" with "someUser"', results['result'])
         self.assertIn('testMessage', results['result'])
@@ -77,39 +83,18 @@ class TestFetchCli(TestElasticsearchIntegrationBase):
         self.insert_line(message='skipMe', timestamp=TIMESTAMP_ONE, index='test_index')
         self.insert_line(message='fetchMe', timestamp=TIMESTAMP_ONE, index='test_index_fetch')
 
-        first_result_queue = Queue()
+        first_result = self.run_with_args_and_fetch_results(args=['-v',
+                                                                  '--connect', ES_HOST,
+                                                                  '--username', USERNAME,
+                                                                  '--password', PASSWORD,
+                                                                  'tail'])
 
-        def run_in_background_one():
-            Timer(TIMEOUT, lambda: os.kill(os.getpid(), SIGINT)).start()
-
-            runner = CliRunner()
-            result = runner.invoke(cli.cli, ['-v',
-                                             '--connect', ES_HOST,
-                                             '--username', USERNAME,
-                                             '--password', PASSWORD,
-                                             'tail'])
-            first_result_queue.put(('exit_code', result.exit_code))
-            first_result_queue.put(('result', result.output))
-            first_result_queue.put(('exception', result.exception))
-
-        second_result_queue = Queue()
-
-        def run_in_background_two():
-            Timer(TIMEOUT, lambda: os.kill(os.getpid(), SIGINT)).start()
-
-            runner = CliRunner()
-            result = runner.invoke(cli.cli, ['-v',
-                                             '--connect', ES_HOST,
-                                             '--username', USERNAME,
-                                             '--password', PASSWORD,
-                                             'tail',
-                                             '--index', 'test_index_fetch'])
-            second_result_queue.put(('exit_code', result.exit_code))
-            second_result_queue.put(('result', result.output))
-            second_result_queue.put(('exception', result.exception))
-
-        first_result = self.fetch_data_from_process(first_result_queue, run_in_background_one)
-        second_result = self.fetch_data_from_process(second_result_queue, run_in_background_two)
+        second_result = self.run_with_args_and_fetch_results(args=['-v',
+                                                                   '--connect', ES_HOST,
+                                                                   '--username', USERNAME,
+                                                                   '--password', PASSWORD,
+                                                                   'tail',
+                                                                   '--index', 'test_index_fetch'])
 
         self.assertIn('Connecting to "localhost:9200" with "someUser"', first_result['result'])
         self.assertIn('skipMe', first_result['result'])
@@ -125,23 +110,12 @@ class TestFetchCli(TestElasticsearchIntegrationBase):
         mock_dt.now.return_value = TIMESTAMP_ONE_HALF
         self.insert_line(message='formatMe', timestamp=TIMESTAMP_ONE)
 
-        result_queue = Queue()
-
-        def run_in_background():
-            Timer(TIMEOUT, lambda: os.kill(os.getpid(), SIGINT)).start()
-
-            runner = CliRunner()
-            result = runner.invoke(cli.cli, ['-v',
-                                             '--connect', ES_HOST,
-                                             '--username', USERNAME,
-                                             '--password', PASSWORD,
-                                             'tail',
-                                             '--format-string', '{@timestamp} -->{message}<--'])
-            result_queue.put(('exit_code', result.exit_code))
-            result_queue.put(('result', result.output))
-            result_queue.put(('exception', result.exception))
-
-        results = self.fetch_data_from_process(result_queue, run_in_background)
+        results = self.run_with_args_and_fetch_results(args=['-v',
+                                                             '--connect', ES_HOST,
+                                                             '--username', USERNAME,
+                                                             '--password', PASSWORD,
+                                                             'tail',
+                                                             '--format-string', '{@timestamp} -->{message}<--'])
 
         self.assertIn('Connecting to "localhost:9200" with "someUser"', results['result'])
         self.assertIn('-->formatMe<--', results['result'])
@@ -153,25 +127,12 @@ class TestFetchCli(TestElasticsearchIntegrationBase):
         self.insert_line(message='findMe', timestamp=TIMESTAMP_ONE)
         self.insert_line(message='doNotFindMe', timestamp=TIMESTAMP_ONE)
 
-        result_queue = Queue()
-
-        def run_in_background():
-            Timer(TIMEOUT, lambda: os.kill(os.getpid(), SIGINT)).start()
-
-            runner = CliRunner()
-            result = runner.invoke(cli.cli, ['-v',
-                                             '--connect', ES_HOST,
-                                             '--username', USERNAME,
-                                             '--password', PASSWORD,
-                                             'tail',
-                                             '--query', 'message:findMe'])
-            result_queue.put(('exit_code', result.exit_code))
-            result_queue.put(('result', result.output))
-            result_queue.put(('exception', result.exception))
-
-            print('Exception: {}'.format(result.exception))
-
-        results = self.fetch_data_from_process(result_queue, run_in_background)
+        results = self.run_with_args_and_fetch_results(args=['-v',
+                                                             '--connect', ES_HOST,
+                                                             '--username', USERNAME,
+                                                             '--password', PASSWORD,
+                                                             'tail',
+                                                             '--query', 'message:findMe'])
 
         self.assertIn('Connecting to "localhost:9200" with "someUser"', results['result'])
         self.assertIn('findMe', results['result'])
