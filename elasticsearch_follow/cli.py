@@ -95,7 +95,7 @@ def cli(config, username, password, connect, verbose):
 def fetch(config, format_string, index, num_after, num_before, query, from_time, to_time):
     es = initialize_es_instance(config.connect, config.username, config.password, config.verbose)
     es_fetch = ElasticsearchFetch(elasticsearch=es)
-    processor = FormattingProcessor(format_string)
+    processor = FormattingProcessor(format_string=format_string)
 
     entries = es_fetch.search_surrounding(index=index, query_string=query, num_before=num_before, num_after=num_after, from_time=from_time, to_time=to_time)
     for entry in entries:
@@ -116,7 +116,7 @@ def tail(config, format_string, index, query, number_of_lines, timedelta):
     es = initialize_es_instance(config.connect, config.username, config.password, config.verbose)
 
     es_follow = ElasticsearchFollow(es, query_string=query)
-    follower = Follower(elasticsearch_follow=es_follow, index=index, time_delta=timedelta, processor=FormattingProcessor(format_string))
+    follower = Follower(elasticsearch_follow=es_follow, index=index, time_delta=timedelta, processor=FormattingProcessor(format_string=format_string))
 
     if number_of_lines > 0:
         for entry in list(follower.generator())[-number_of_lines:]:
