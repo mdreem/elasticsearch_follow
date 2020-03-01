@@ -59,7 +59,7 @@ class TestFetchCli(TestElasticsearchIntegrationBase):
         results = self.fetch_data_from_process(result_queue, run_in_background)
         return results
 
-    @patch('follower.datetime.datetime')
+    @patch('elasticsearch_follow.follower.datetime.datetime')
     def test_basic_fetch(self, mock_dt):
         mock_dt.utcnow.return_value = TIMESTAMP_ONE_HALF
         mock_dt.now.return_value = TIMESTAMP_ONE_HALF
@@ -75,7 +75,7 @@ class TestFetchCli(TestElasticsearchIntegrationBase):
         self.assertIn('Connecting to "localhost:9200" with "someUser"', results['result'])
         self.assertIn('testMessage', results['result'])
 
-    @patch('follower.datetime.datetime')
+    @patch('elasticsearch_follow.follower.datetime.datetime')
     def test_fetch_with_different_index(self, mock_dt):
         mock_dt.utcnow.return_value = TIMESTAMP_ONE_HALF
         mock_dt.now.return_value = TIMESTAMP_ONE_HALF
@@ -104,7 +104,7 @@ class TestFetchCli(TestElasticsearchIntegrationBase):
         self.assertNotIn('skipMe', second_result['result'])
         self.assertIn('fetchMe', second_result['result'])
 
-    @patch('follower.datetime.datetime')
+    @patch('elasticsearch_follow.follower.datetime.datetime')
     def test_fetch_with_format_string(self, mock_dt):
         mock_dt.utcnow.return_value = TIMESTAMP_ONE_HALF
         mock_dt.now.return_value = TIMESTAMP_ONE_HALF
@@ -120,7 +120,7 @@ class TestFetchCli(TestElasticsearchIntegrationBase):
         self.assertIn('Connecting to "localhost:9200" with "someUser"', results['result'])
         self.assertIn('-->formatMe<--', results['result'])
 
-    @patch('follower.datetime.datetime')
+    @patch('elasticsearch_follow.follower.datetime.datetime')
     def test_fetch_with_query(self, mock_dt):
         mock_dt.utcnow.return_value = TIMESTAMP_ONE_HALF
         mock_dt.now.return_value = TIMESTAMP_ONE_HALF
@@ -138,7 +138,7 @@ class TestFetchCli(TestElasticsearchIntegrationBase):
         self.assertIn('findMe', results['result'])
         self.assertNotIn('doNotFindMe', results['result'])
 
-    @patch('follower.datetime.datetime')
+    @patch('elasticsearch_follow.follower.datetime.datetime')
     def test_fetch_with_number_of_lines(self, mock_dt):
         mock_dt.utcnow.return_value = TIMESTAMP_ONE_HALF
         mock_dt.now.return_value = TIMESTAMP_ONE_HALF
@@ -158,7 +158,7 @@ class TestFetchCli(TestElasticsearchIntegrationBase):
         self.assertNotIn('line2', results['result'])
         self.assertIn('line3', results['result'])
 
-    @patch('follower.datetime.datetime')
+    @patch('elasticsearch_follow.follower.datetime.datetime')
     def test_fetch_with_timedelta(self, mock_dt):
         mock_dt.utcnow.return_value = TIMESTAMP_ONE_HALF
         mock_dt.now.return_value = TIMESTAMP_ONE_HALF
