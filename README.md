@@ -39,7 +39,7 @@ pip install elasticsearch_follow
 
 See also: <https://pypi.org/project/elasticsearch-follow/>
 
-## Exampluse use
+## Example usage
 
 This package introduces the command line tool ``es_tail`` which can be used for
 following logs written to Elasticsearch and directly fetching log lines by a query.
@@ -60,7 +60,15 @@ es_tail -c "http://localhost:9200" fetch --index "logstash" -f "{@timestamp} {me
 es_tail -c "http://localhost:9200" fetch --index "logstash" -f "{@timestamp} {message} {kv[field]} {kv[nested][field]}" -F "now-1h" 
 ```
 
-## Example use of the library
+The command line options can also be given via environment variables by using the prefix ``ES_TAIL``.
+For example
+```bash
+export ES_TAIL_USERNAME='username'
+export ES_TAIL_PASSWORD='password'
+es_tail -c http://localhost:9200 tail
+```
+
+## Example usage of the library
 
 ```python
 from elasticsearch import Elasticsearch
