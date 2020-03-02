@@ -53,7 +53,7 @@ es_tail -c "http://localhost:9200" tail --index "logstash*" -f "{@timestamp} {me
 
 # Fetch all logs in the last hour with the field loglevel contains ERROR and fetch the two lines before and after.
 # Print the fieds @timestamp and message
-es_tail -c "http://localhost:9200" fetch --index "logstash" -f "{@timestamp} {message}"  --query loglevel:ERROR -A 2 -B 2 -F "now-1h" 
+es_tail -c "http://localhost:9200" fetch --index "logstash" -f "{@timestamp} {message}" --query loglevel:ERROR -A 2 -B 2 -F "now-1h" 
 
 
 # It is also possible to print nested fields
