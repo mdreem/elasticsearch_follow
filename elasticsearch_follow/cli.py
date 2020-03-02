@@ -12,6 +12,11 @@ from .elasticsearch_follow import ElasticsearchFollow
 from .follower import Follower
 from .formatting_processor import FormattingProcessor
 
+CONTEXT_SETTINGS = dict(
+    help_option_names=['-h', '--help'],
+    auto_envvar_prefix='ES_TAIL'
+)
+
 
 class Config:
     def __init__(self):
@@ -51,7 +56,7 @@ def parse_url(ctx, param, value):
         return urlparse(value)
 
 
-@click.group()
+@click.group(context_settings=CONTEXT_SETTINGS)
 @click.option('--username', '-u', help='Username for basic-auth.')
 @click.option('--password', '-p', help='Password for basic-auth.')
 @click.option('--connect', '-c', required=True, callback=parse_url, help='URL to connect to.')
