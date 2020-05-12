@@ -162,3 +162,18 @@ class TestFetchCli(TestElasticsearchIntegrationBase):
         print(result.output)
         self.assertIn('Connecting to "localhost" with "someUser"', result.output)
         self.assertIn('Setting port to 443 explicitly.', result.output)
+
+    def test_cookie_option_is_evaluated(self):
+        self.delete_index('test_index')
+        self.insert_line(message='testMessage', timestamp=TIMESTAMP_ONE)
+
+        runner = CliRunner()
+        result = runner.invoke(cli.cli, ['-v',
+                                         '--connect', ES_HOST,
+                                         '--cookie', 'someCookie',
+                                         'fetch'])
+
+        print(result.output)
+        self.assertIn('Connecting to "localhost" via cookie.', result.output)
+        self.assertIn('testMessage', result.output)
+        self.assertEqual(0, result.exit_code)

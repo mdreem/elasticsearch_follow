@@ -35,27 +35,24 @@ def initialize_es_instance(connect, username, password, cookie, verbose=False):
         print('Attempting to connect to Elasticsearch...')
 
     if cookie:
-        es = elasticsearch.Elasticsearch(
-            [connect.hostname],
-            headers={'Cookie': cookie},
-            scheme=connect.scheme,
-            port=connect.port,
-            ca_certs=certifi.where()
-        )
-        return es
+        if verbose:
+            print('Connecting to "{}" via cookie.'.format(connect.hostname))
+        return es_connection_via_cookie(connect, cookie)
 
+    es = es_connection_via_basic_auth(connect, password, username, verbose)
+    return es
+
+
+def es_connection_via_basic_auth(connect, password, username, verbose):
     http_auth = None
     if username or password:
         http_auth = (username, password)
-
     if verbose:
         print('Connecting to "{}" with "{}".'.format(connect.netloc, username))
-
     if connect.port is None and connect.scheme == 'https':
         if verbose:
             print('Setting port to 443 explicitly.')
         connect.port = 443
-
     es = elasticsearch.Elasticsearch(
         [connect.hostname],
         http_auth=http_auth,
@@ -63,7 +60,17 @@ def initialize_es_instance(connect, username, password, cookie, verbose=False):
         port=connect.port,
         ca_certs=certifi.where()
     )
+    return es
 
+
+def es_connection_via_cookie(connect, cookie):
+    es = elasticsearch.Elasticsearch(
+        [connect.hostname],
+        headers={'Cookie': cookie},
+        scheme=connect.scheme,
+        port=connect.port,
+        ca_certs=certifi.where()
+    )
     return es
 
 
