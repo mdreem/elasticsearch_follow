@@ -22,6 +22,7 @@ class Config:
     def __init__(self):
         self.password = None
         self.username = None
+        self.cookie = None
         self.host = None
         self.verbose = False
 
@@ -29,9 +30,19 @@ class Config:
 pass_config = click.make_pass_decorator(Config, ensure=True)
 
 
-def initialize_es_instance(connect, username, password, verbose=False):
+def initialize_es_instance(connect, username, password, cookie, verbose=False):
     if verbose:
         print('Attempting to connect to Elasticsearch...')
+
+    if cookie:
+        es = elasticsearch.Elasticsearch(
+            [connect.hostname],
+            headers={'Cookie': cookie},
+            scheme=connect.scheme,
+            port=connect.port,
+            ca_certs=certifi.where()
+        )
+        return es
 
     http_auth = None
     if username or password:
@@ -59,12 +70,14 @@ def parse_url(ctx, param, value):
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.option('--username', '-u', help='Username for basic-auth.')
 @click.option('--password', '-p', help='Password for basic-auth.')
+@click.option('--cookie', '-o', help='Cookie for e.g. a token.')
 @click.option('--connect', '-c', required=True, callback=parse_url, help='URL to connect to.')
 @click.option('--verbose', '-v', is_flag=True, default=False, help='Print more output.')
 @pass_config
-def cli(config, username, password, connect, verbose):
+def cli(config, username, password, cookie, connect, verbose):
     config.username = username
     config.password = password
+    config.cookie = cookie
     config.connect = connect
     config.verbose = verbose
 
@@ -79,7 +92,7 @@ def cli(config, username, password, connect, verbose):
 @click.option('--to-time', '-T', type=str, help='From which point in time to start the query. Takes an elasticsearch time format. (e.g. now, now-1h). ')
 @pass_config
 def fetch(config, format_string, index, num_after, num_before, query, from_time, to_time):
-    es = initialize_es_instance(config.connect, config.username, config.password, config.verbose)
+    es = initialize_es_instance(config.connect, config.username, config.password, config.cookie, config.verbose)
     es_fetch = ElasticsearchFetch(elasticsearch=es)
     processor = FormattingProcessor(format_string=format_string)
 
@@ -99,7 +112,7 @@ def fetch(config, format_string, index, num_after, num_before, query, from_time,
 @click.option('--timedelta', '-t', default=60, type=int, metavar='<SECONDS>', help='Look <SECONDS> seconds into the past to update loglines.')
 @pass_config
 def tail(config, format_string, index, query, number_of_lines, timedelta):
-    es = initialize_es_instance(config.connect, config.username, config.password, config.verbose)
+    es = initialize_es_instance(config.connect, config.username, config.password, config.cookie, config.verbose)
 
     es_follow = ElasticsearchFollow(es, query_string=query)
     follower = Follower(elasticsearch_follow=es_follow, index=index, time_delta=timedelta, processor=FormattingProcessor(format_string=format_string))
