@@ -147,3 +147,18 @@ class TestFetchCli(TestElasticsearchIntegrationBase):
         self.assertNotIn('firstLine', result.output)
         self.assertNotIn('thirdLine', result.output)
         self.assertEqual(0, result.exit_code)
+
+    def test_port_is_added_with_https_without_given_port(self):
+        self.delete_index('test_index')
+        self.insert_line(message='testMessage', timestamp=TIMESTAMP_ONE)
+
+        runner = CliRunner()
+        result = runner.invoke(cli.cli, ['-v',
+                                         '--connect', 'https://localhost',
+                                         '--username', USERNAME,
+                                         '--password', PASSWORD,
+                                         'fetch'])
+
+        print(result.output)
+        self.assertIn('Connecting to "localhost" with "someUser"', result.output)
+        self.assertIn('Setting port to 443 explicitly.', result.output)

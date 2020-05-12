@@ -8,4 +8,5 @@ exec docker run -d \
     -e node.name=test \
     -e cluster.initial_master_nodes=test \
     -p "9200:9200" \
+    -p "9200:443" \
     docker.elastic.co/elasticsearch/elasticsearch-oss:$ES_VERSION
