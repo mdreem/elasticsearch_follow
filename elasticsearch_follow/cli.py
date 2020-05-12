@@ -51,6 +51,11 @@ def initialize_es_instance(connect, username, password, cookie, verbose=False):
     if verbose:
         print('Connecting to "{}" with "{}".'.format(connect.netloc, username))
 
+    if connect.port is None and connect.scheme == 'https':
+        if verbose:
+            print('Setting port to 443 explicitly.')
+        connect.port = 443
+
     es = elasticsearch.Elasticsearch(
         [connect.hostname],
         http_auth=http_auth,
