@@ -7,4 +7,11 @@ from .elasticsearch_follow import ElasticsearchFollow
 from .follower import Follower
 from .formatting_processor import FormattingProcessor
 
-__all__ = ['__version__', 'ElasticsearchFollow', 'ElasticsearchFetch', 'Follower', 'FormattingProcessor', 'DefaultProcessor']
+__all__ = [
+    "__version__",
+    "ElasticsearchFollow",
+    "ElasticsearchFetch",
+    "Follower",
+    "FormattingProcessor",
+    "DefaultProcessor",
+]

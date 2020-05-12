@@ -7,7 +7,7 @@ from .entry_tracker import EntryTracker
 
 
 class ElasticsearchFollow:
-    def __init__(self, elasticsearch, timestamp_field='@timestamp', query_string=None):
+    def __init__(self, elasticsearch, timestamp_field="@timestamp", query_string=None):
         """
         :param elasticsearch: elasticsearch instance from the ``elasticsearch``-library.
         :param timestamp_field: Denotes which field in the elasticsearch-index is used
@@ -15,24 +15,22 @@ class ElasticsearchFollow:
         :param query_string: The query used to fetch data from Elasticsearch.
         """
         self.es = elasticsearch
-        self.es_fetch = ElasticsearchFetch(elasticsearch=elasticsearch, timestamp_field=timestamp_field)
+        self.es_fetch = ElasticsearchFetch(
+            elasticsearch=elasticsearch, timestamp_field=timestamp_field
+        )
         self.timestamp_field = timestamp_field
 
         self.entry_tracker = EntryTracker()
 
         self.base_query = {
-            "sort": [
-                {self.timestamp_field: "asc"}
-            ],
-            'query': {'bool': {'must': []}}
+            "sort": [{self.timestamp_field: "asc"}],
+            "query": {"bool": {"must": []}},
         }
 
         if query_string:
-            self.base_query['query']['bool']['must'].append({
-                'query_string': {
-                    'query': query_string
-                }
-            })
+            self.base_query["query"]["bool"]["must"].append(
+                {"query_string": {"query": query_string}}
+            )
 
     def get_entries_since(self, index, timestamp):
         """
@@ -44,17 +42,11 @@ class ElasticsearchFollow:
         :return: Yields entries until no entries are left.
         """
         query_since = deepcopy(self.base_query)
-        query_since['query']['bool']['must'].append({
-            'range': {
-                self.timestamp_field: {
-                    "gt": timestamp
-                }
-            }
-        })
+        query_since["query"]["bool"]["must"].append(
+            {"range": {self.timestamp_field: {"gt": timestamp}}}
+        )
 
-        res = self.es.search(index=index,
-                             scroll='2m',
-                             body=query_since)
+        res = self.es.search(index=index, scroll="2m", body=query_since)
         yield from self.es_fetch.get_hits(res)
 
     def get_new_lines(self, index, timestamp):
@@ -70,9 +62,9 @@ class ElasticsearchFollow:
         entries = self.get_entries_since(index, timestamp)
 
         for entry in entries:
-            entry_id = entry['_id']
+            entry_id = entry["_id"]
             if entry_id not in self.entry_tracker:
-                new_line = entry['_source']
+                new_line = entry["_source"]
 
                 entry_timestamp = parse(new_line[self.timestamp_field])
 

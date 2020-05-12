@@ -25,7 +25,10 @@ class EntryTracker:
     def _update_entries_by_timestamp(self, entry_id, entry_timestamp):
         if not entry_timestamp.tzinfo:
             entry_timestamp = pytz.utc.localize(entry_timestamp)
-        heapq.heappush(self.entries_by_timestamp, Entry(timestamp=entry_timestamp, entry_id=entry_id))
+        heapq.heappush(
+            self.entries_by_timestamp,
+            Entry(timestamp=entry_timestamp, entry_id=entry_id),
+        )
 
     def prune_before(self, timestamp):
         """

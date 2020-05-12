@@ -1,5 +1,5 @@
 class ElasticsearchFetch:
-    def __init__(self, elasticsearch, timestamp_field='@timestamp'):
+    def __init__(self, elasticsearch, timestamp_field="@timestamp"):
         """
         :param elasticsearch: elasticsearch instance from the ``elasticsearch``-library.
         :param timestamp_field: Denotes which field in the elasticsearch-index is used
@@ -18,33 +18,26 @@ class ElasticsearchFetch:
         can be used with search_nearby.
         """
         query = {
-            "sort": [
-                {self.timestamp_field: 'asc'},
-                {'_doc': 'desc'}
-            ],
-            'query': {'bool': {'must': []}}
+            "sort": [{self.timestamp_field: "asc"}, {"_doc": "desc"}],
+            "query": {"bool": {"must": []}},
         }
 
         if query_string:
-            query['query']['bool']['must'].append({
-                'query_string': {
-                    'query': query_string
-                }
-            })
+            query["query"]["bool"]["must"].append(
+                {"query_string": {"query": query_string}}
+            )
 
         if from_time or to_time:
             query_range = {self.timestamp_field: {}}
 
             if from_time:
-                query_range[self.timestamp_field]['gte'] = from_time
+                query_range[self.timestamp_field]["gte"] = from_time
             if to_time:
-                query_range[self.timestamp_field]['lte'] = to_time
+                query_range[self.timestamp_field]["lte"] = to_time
 
-            query['query']['bool']['must'].append({
-                'range': query_range
-            })
+            query["query"]["bool"]["must"].append({"range": query_range})
 
-        return self.es.search(index=index, scroll='2m', body=query)
+        return self.es.search(index=index, scroll="2m", body=query)
 
     def search_nearby(self, index, timestamp, doc_id, after=True, number=0):
         """
@@ -62,21 +55,15 @@ class ElasticsearchFetch:
 
         if after:
             query = {
-                'search_after': [timestamp, doc_id],
-                'size': number,
-                'sort': [
-                    {self.timestamp_field: 'asc'},
-                    {'_doc': 'desc'}
-                ]
+                "search_after": [timestamp, doc_id],
+                "size": number,
+                "sort": [{self.timestamp_field: "asc"}, {"_doc": "desc"}],
             }
         else:
             query = {
-                'search_after': [timestamp, doc_id],
-                'size': number,
-                'sort': [
-                    {self.timestamp_field: 'desc'},
-                    {'_doc': 'asc'}
-                ]
+                "search_after": [timestamp, doc_id],
+                "size": number,
+                "sort": [{self.timestamp_field: "desc"}, {"_doc": "asc"}],
             }
 
         return self.es.search(index=index, body=query)
@@ -85,12 +72,20 @@ class ElasticsearchFetch:
     def _extract_source(line):
         if not line:
             return []
-        if line['hits']['hits']:
-            return list(map(lambda x: x['_source'], line['hits']['hits']))
+        if line["hits"]["hits"]:
+            return list(map(lambda x: x["_source"], line["hits"]["hits"]))
         else:
             return []
 
-    def search_surrounding(self, index, query_string=None, from_time=None, to_time=None, num_before=0, num_after=0):
+    def search_surrounding(
+        self,
+        index,
+        query_string=None,
+        from_time=None,
+        to_time=None,
+        num_before=0,
+        num_after=0,
+    ):
         """
         Fetches the line found by query_string as well as lines before and after as given
         by num_before and num_after.
@@ -104,16 +99,32 @@ class ElasticsearchFetch:
         :return: Returns a list of lists, where the sublists contain the found and
         the surrounding documents.
         """
-        search_result = self.search(index, query_string, from_time=from_time, to_time=to_time)
+        search_result = self.search(
+            index, query_string, from_time=from_time, to_time=to_time
+        )
 
         for hit in self.get_hits(search_result):
-            line = hit['_source']
-            line_timestamp, line_doc_id = hit['sort']
+            line = hit["_source"]
+            line_timestamp, line_doc_id = hit["sort"]
 
-            lines_before = self.search_nearby(index=index, timestamp=line_timestamp, doc_id=line_doc_id, after=False, number=num_before)
-            lines_after = self.search_nearby(index=index, timestamp=line_timestamp, doc_id=line_doc_id, after=True, number=num_after)
+            lines_before = self.search_nearby(
+                index=index,
+                timestamp=line_timestamp,
+                doc_id=line_doc_id,
+                after=False,
+                number=num_before,
+            )
+            lines_after = self.search_nearby(
+                index=index,
+                timestamp=line_timestamp,
+                doc_id=line_doc_id,
+                after=True,
+                number=num_after,
+            )
 
-            yield list(reversed(self._extract_source(lines_before))) + [line] + self._extract_source(lines_after)
+            yield list(reversed(self._extract_source(lines_before))) + [
+                line
+            ] + self._extract_source(lines_after)
 
     def get_hits(self, search_result):
         """
@@ -123,16 +134,16 @@ class ElasticsearchFetch:
         :return: Yields the resulting documents one by one.
         """
         res = search_result
-        scroll_id = res['_scroll_id']
-        hits = res['hits']['hits']
+        scroll_id = res["_scroll_id"]
+        hits = res["hits"]["hits"]
 
         for hit in hits:
             yield hit
 
-        while res['hits']['hits']:
-            res = self.es.scroll(scroll_id=scroll_id, scroll='2m')
-            scroll_id = res['_scroll_id']
-            current_hits = res['hits']['hits']
+        while res["hits"]["hits"]:
+            res = self.es.scroll(scroll_id=scroll_id, scroll="2m")
+            scroll_id = res["_scroll_id"]
+            current_hits = res["hits"]["hits"]
             for hit in current_hits:
                 yield hit
 

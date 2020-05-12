@@ -6,7 +6,7 @@ class DefaultValueFormatter(string.Formatter):
         try:
             val = super(DefaultValueFormatter, self).get_field(field_name, args, kwargs)
         except (KeyError, AttributeError):
-            val = '', field_name
+            val = "", field_name
         return val
 
 
