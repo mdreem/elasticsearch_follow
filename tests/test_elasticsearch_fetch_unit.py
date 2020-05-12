@@ -3,7 +3,7 @@ from unittest.mock import Mock
 
 import elasticsearch_follow
 
-SEARCH_RESULT = ['some_value']
+SEARCH_RESULT = ["some_value"]
 
 
 class TestElasticsearchFetchUnit(unittest.TestCase):
@@ -13,7 +13,9 @@ class TestElasticsearchFetchUnit(unittest.TestCase):
 
         es_fetch = elasticsearch_follow.ElasticsearchFetch(es)
 
-        result = es_fetch.search_nearby(index='test-index', timestamp=1, doc_id=2, after=True, number=1)
+        result = es_fetch.search_nearby(
+            index="test-index", timestamp=1, doc_id=2, after=True, number=1
+        )
 
         self.assertTrue(es.search.called)
         self.assertEqual(result, SEARCH_RESULT)
@@ -22,7 +24,9 @@ class TestElasticsearchFetchUnit(unittest.TestCase):
         es = Mock()
         es_fetch = elasticsearch_follow.ElasticsearchFetch(es)
 
-        result = es_fetch.search_nearby(index='test-index', timestamp=1, doc_id=2, after=True, number=0)
+        result = es_fetch.search_nearby(
+            index="test-index", timestamp=1, doc_id=2, after=True, number=0
+        )
 
         self.assertFalse(es.search.called)
         self.assertEqual(result, [])
