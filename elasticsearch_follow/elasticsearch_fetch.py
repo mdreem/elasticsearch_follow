@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 class ElasticsearchFetch:
     def __init__(self, elasticsearch, timestamp_field="@timestamp"):
         """
@@ -53,6 +58,11 @@ class ElasticsearchFetch:
         if number <= 0:
             return []
 
+        logger.debug(
+            "Searching for '{}' entries before or after ({}) doc with id ''".format(
+                number, after, doc_id
+            )
+        )
         if after:
             query = {
                 "search_after": [timestamp, doc_id],
@@ -99,6 +109,11 @@ class ElasticsearchFetch:
         :return: Returns a list of lists, where the sublists contain the found and
         the surrounding documents.
         """
+        logger.debug(
+            "Entering search_surrounding with from_time '{}', to_time '{}', num_before '{}' and num_after '{}'".format(
+                from_time, to_time, num_before, num_after
+            )
+        )
         search_result = self.search(
             index, query_string, from_time=from_time, to_time=to_time
         )
@@ -136,15 +151,19 @@ class ElasticsearchFetch:
         res = search_result
         scroll_id = res["_scroll_id"]
         hits = res["hits"]["hits"]
+        logger.debug("Got {} hits".format(len(hits)))
 
         for hit in hits:
             yield hit
 
         while res["hits"]["hits"]:
             res = self.es.scroll(scroll_id=scroll_id, scroll="2m")
+            logger.debug("Fetching further pages. Got {} hits".format(len(hits)))
+
             scroll_id = res["_scroll_id"]
             current_hits = res["hits"]["hits"]
             for hit in current_hits:
                 yield hit
 
+        logger.debug("No more hits. Clearing scroll.")
         self.es.clear_scroll(scroll_id=scroll_id)

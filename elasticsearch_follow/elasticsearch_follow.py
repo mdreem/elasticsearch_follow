@@ -4,6 +4,9 @@ from dateutil.parser import parse
 
 from .elasticsearch_fetch import ElasticsearchFetch
 from .entry_tracker import EntryTracker
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class ElasticsearchFollow:
@@ -59,6 +62,11 @@ class ElasticsearchFollow:
         :param timestamp: Timestamp from whoch to start fetching lines.
         :return: Yields the new lines until the list is empty.
         """
+        logger.debug(
+            "Entering get_new_lines for index '{}' amd timestamp '{}'".format(
+                index, timestamp
+            )
+        )
         entries = self.get_entries_since(index, timestamp)
 
         for entry in entries:
@@ -70,6 +78,7 @@ class ElasticsearchFollow:
 
                 self.entry_tracker.add(entry_id, entry_timestamp)
                 yield new_line
+        logger.debug("Finished yielding new lines.")
 
     def prune_before(self, timestamp):
         """

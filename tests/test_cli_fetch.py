@@ -125,6 +125,12 @@ class TestFetchCli(TestElasticsearchIntegrationBase):
         self.assertIn("-->formatMe<--][--", result.output)
         self.assertEqual(0, result.exit_code)
 
+    @staticmethod
+    def filter_output(output):
+        split_into_lines = output.splitlines()
+        filtered = filter(lambda l: "INFO" not in l, split_into_lines)
+        return "\n".join(filtered)
+
     def test_fetch_with_query(self):
         self.delete_index("test_index")
         self.insert_line(message="findMe", timestamp=TIMESTAMP_ONE)
@@ -189,7 +195,7 @@ class TestFetchCli(TestElasticsearchIntegrationBase):
 #########
 2019-01-01T10:02:00+00:00 secondLine
 2019-01-01T10:03:00+00:00 thirdLine""",
-            result.output,
+            self.filter_output(result.output),
         )
         self.assertEqual(0, result.exit_code)
 

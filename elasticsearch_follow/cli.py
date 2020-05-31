@@ -2,6 +2,7 @@
 
 import time
 from urllib.parse import urlparse
+import logging
 
 import certifi
 import click
@@ -16,6 +17,8 @@ CONTEXT_SETTINGS = dict(
     help_option_names=["-h", "--help"], auto_envvar_prefix="ES_TAIL"
 )
 
+logger = logging.getLogger(__name__)
+
 
 class Config:
     def __init__(self):
@@ -29,28 +32,25 @@ class Config:
 pass_config = click.make_pass_decorator(Config, ensure=True)
 
 
-def initialize_es_instance(connect, username, password, cookie, verbose=False):
-    if verbose:
-        print("Attempting to connect to Elasticsearch...")
+def initialize_es_instance(connect, username, password, cookie):
+    logging.info("Attempting to connect to Elasticsearch...")
 
     if cookie:
-        if verbose:
-            print('Connecting to "{}" via cookie.'.format(connect.hostname))
+        logger.info('Connecting to "{}" via cookie.'.format(connect.hostname))
         return es_connection_via_cookie(connect, cookie)
 
-    es = es_connection_via_basic_auth(connect, password, username, verbose)
+    es = es_connection_via_basic_auth(connect, password, username)
     return es
 
 
-def es_connection_via_basic_auth(connect, password, username, verbose):
+def es_connection_via_basic_auth(connect, password, username):
     http_auth = None
     if username or password:
         http_auth = (username, password)
-    if verbose:
-        print('Connecting to "{}" with "{}".'.format(connect.netloc, username))
+
+    logger.info('Connecting to "{}" with "{}".'.format(connect.netloc, username))
     if connect.port is None and connect.scheme == "https":
-        if verbose:
-            print("Setting port to 443 explicitly.")
+        logger.info("Setting port to 443 explicitly.")
         connect.port = 443
     es = elasticsearch.Elasticsearch(
         [connect.hostname],
@@ -93,6 +93,21 @@ def cli(config, username, password, cookie, connect, verbose):
     config.cookie = cookie
     config.connect = connect
     config.verbose = verbose
+
+    if verbose:
+        configure_logger()
+
+
+def configure_logger():
+    logging.basicConfig(level=logging.INFO)
+    for handler in logging.getLogger().handlers:
+        logging.getLogger().removeHandler(handler)
+    console_handler = logging.StreamHandler()
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    console_handler.setFormatter(formatter)
+    logging.getLogger().addHandler(console_handler)
 
 
 @cli.command()
@@ -144,7 +159,7 @@ def fetch(
     config, format_string, index, num_after, num_before, query, from_time, to_time
 ):
     es = initialize_es_instance(
-        config.connect, config.username, config.password, config.cookie, config.verbose
+        config.connect, config.username, config.password, config.cookie
     )
     es_fetch = ElasticsearchFetch(elasticsearch=es)
     processor = FormattingProcessor(format_string=format_string)
@@ -202,7 +217,7 @@ def fetch(
 @pass_config
 def tail(config, format_string, index, query, number_of_lines, timedelta):
     es = initialize_es_instance(
-        config.connect, config.username, config.password, config.cookie, config.verbose
+        config.connect, config.username, config.password, config.cookie
     )
 
     es_follow = ElasticsearchFollow(es, query_string=query)
