@@ -68,6 +68,15 @@ export ES_TAIL_PASSWORD='password'
 es_tail -c http://localhost:9200 tail
 ```
 
+### Authentication via cookie
+
+It is also possible to use a cookie for authentication:
+
+```bash
+export AUTH_COOKIE="myAuthCookie"
+es_tail -c http://localhost:9200 -o $AUTH_COOKIE tail
+```
+
 ## Example usage of the library
 
 ```python
