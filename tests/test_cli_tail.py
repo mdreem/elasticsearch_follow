@@ -5,7 +5,8 @@ from multiprocessing import Queue, Process
 from signal import SIGINT
 from threading import Timer
 from unittest.mock import patch
-
+import logging
+import sys
 from click.testing import CliRunner
 from dateutil import tz
 
@@ -26,6 +27,8 @@ TIMESTAMP_TWO_HALF = datetime(
     year=2019, month=1, day=1, hour=10, minute=2, second=30, tzinfo=tz.UTC
 )
 TIMESTAMP_THREE = datetime(year=2019, month=1, day=1, hour=10, minute=3, tzinfo=tz.UTC)
+
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
 class TestFetchCli(TestElasticsearchIntegrationBase):
